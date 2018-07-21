@@ -1,0 +1,8 @@
+resolver: lts-11.17
+packages:
+- .
+extra-deps:
+    - github: tsahyt/yak
+      commit: 939b1ad245d0758151b080c1bc01a58e7e0acf13
+    - github: tsahyt/voco
+      commit: 1bd635dfd958ad593bee8d9811ff993dcdd859a8
