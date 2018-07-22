@@ -12,6 +12,7 @@
 
 module Components.Permission
     ( allowed
+    , withBlacklist
     , permissions
     , Perm(..)
     , allPerms
@@ -50,14 +51,13 @@ import qualified Data.Attoparsec.Text as A
 
 data Perm
     = SetPermissions -- ^ "set-perms"
-    | KickJlaw -- ^ "kick-jlaw"
     deriving (Eq, Ord, Show, Read, Enum)
 
 allPerms :: [Perm]
 allPerms = [SetPermissions ..]
 
 permDict :: [(Perm, Text)]
-permDict = [(SetPermissions, "set-perms"), (KickJlaw, "kick-jlaw")]
+permDict = [(SetPermissions, "set-perms")]
 
 perm :: A.Parser Perm
 perm = A.choice . map (\(p,s) -> p <$ A.string s) $ permDict
@@ -66,11 +66,21 @@ newtype Permissions =
     Perms (Set Perm)
     deriving (Show, Semigroup, Monoid)
 
-newtype UserPermissions =
-    UPerms (Map Host Permissions)
-    deriving (Show, Semigroup, Monoid)
+data UserPermissions = UPerms 
+    { _uperms :: Map Host Permissions
+    , _blacklist :: Set Host
+    }
+    deriving (Show)
 
-makeWrapped ''UserPermissions
+makeLenses ''UserPermissions
+
+instance Semigroup UserPermissions where
+    UPerms m b <> UPerms n c = UPerms (m <> n) (b <> c)
+
+instance Monoid UserPermissions where
+    mappend = (<>)
+    mempty = UPerms mempty mempty
+
 deriveSafeCopy 0 'base ''Perm
 deriveSafeCopy 0 'base ''Permissions
 deriveSafeCopy 0 'base ''UserPermissions
@@ -86,18 +96,52 @@ revoke (Perms ps) p = (Perms $ Set.delete p ps)
 
 grantU :: Host -> Perm -> Update UserPermissions ()
 grantU h p = do
-    ps <- use $ _Wrapped . at h
+    ps <- use $ uperms . at h
     case ps of
-        Nothing -> _Wrapped . at h .= Just (Perms $ Set.singleton p)
-        Just _ -> _Wrapped . at h . _Just %= flip grant p
+        Nothing -> uperms . at h .= Just (Perms $ Set.singleton p)
+        Just _ -> uperms . at h . _Just %= flip grant p
 
 revokeU :: Host -> Perm -> Update UserPermissions ()
-revokeU h p = _Wrapped . at h . _Just %= flip revoke p
+revokeU h p = uperms . at h . _Just %= flip revoke p
 
 userPerms :: Host -> Query UserPermissions (Maybe Permissions)
-userPerms h = view $ _Wrapped . at h
+userPerms h = view $ uperms . at h
 
-makeAcidic ''UserPermissions ['grantU, 'revokeU, 'userPerms]
+isBlacklisted :: Host -> Query UserPermissions Bool
+isBlacklisted h = do
+    b <- view blacklist
+    pure $ h `Set.member` b
+
+blacklistHost :: Host -> Update UserPermissions ()
+blacklistHost h = blacklist %= Set.insert h
+
+unBlacklistHost :: Host -> Update UserPermissions ()
+unBlacklistHost h = blacklist %= Set.delete h
+
+makeAcidic
+    ''UserPermissions
+    [ 'grantU
+    , 'revokeU
+    , 'userPerms
+    , 'isBlacklisted
+    , 'blacklistHost
+    , 'unBlacklistHost
+    ]
+
+-- | Applies a blacklist contained in the 'UserPermissions's carried in the acid
+-- monad underlying a bot.
+withBlacklist ::
+       (AcidMember UserPermissions s, MonadAcid s m, KnownSymbol c)
+    => Bot m (Msg c p) o
+    -> Bot m (Msg c p) o
+withBlacklist b = do
+    i <- msgPrefix <$> query
+    case i of
+        Just (PrefixUser h) -> do
+            bl <- queryAcid $ IsBlacklisted h
+            guard (not bl)
+            b
+        _ -> b
 
 -- | Guard a bot over an IRC message using with a collection of required
 -- permissions. The bot will fail as long as any permission in the given
@@ -112,8 +156,8 @@ allowed ps b = do
     i <- msgPrefix <$> query
     case i of
         Just (PrefixUser h) -> do
-            uperms <- queryAcid $ UserPerms h
-            case uperms of
+            ups <- queryAcid $ UserPerms h
+            case ups of
                 Just hps -> do
                     guard (all (hps `allows`) ps)
                     b
@@ -125,6 +169,8 @@ data PermCmd
             Perm
     | Revoke Host
              Perm
+    | Blacklist Host
+    | UnBlacklist Host
     deriving (Eq, Show, Ord, Read)
 
 permCmd :: A.Parser PermCmd
@@ -134,6 +180,8 @@ permCmd =
           (A.skipSpace *> perm)
         , Revoke <$> (A.string ":revoke" *> A.skipSpace *> host) <*>
           (A.skipSpace *> perm)
+        , Blacklist <$> (A.string ":blacklist" *> A.skipSpace *> host)
+        , UnBlacklist <$> (A.string ":unblacklist" *> A.skipSpace *> host)
         ]
   where
     host = do
@@ -155,6 +203,8 @@ permCmd =
 --
 -- > :grant <host> <permission>
 -- > :revoke <host> <permission>
+-- > :blacklist <host>
+-- > :unblacklist <host>
 permissions ::
        (AcidMember UserPermissions s, MonadAcid s m, Monad m)
     => Bot m Privmsg ()
@@ -163,3 +213,5 @@ permissions =
     query >>= \case
         Grant h p -> updateAcid $ GrantU h p
         Revoke h p -> updateAcid $ RevokeU h p
+        Blacklist h -> updateAcid $ BlacklistHost h
+        UnBlacklist h -> updateAcid $ UnBlacklistHost h

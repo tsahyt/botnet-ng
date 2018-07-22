@@ -38,12 +38,10 @@ configServer ConnectionConfig{..} =
 type States = '[UserPermissions]
 
 initAcid :: Config -> IO (AcidStates States)
-initAcid Config{..} = do
+initAcid Config {..} = do
     uperms <- Acid.openLocalStateFrom (dbroot </> "user-permissions") mempty
     -- grant root all permissions on start
     mapM_ (\p -> Acid.update uperms $ GrantU root p) allPerms
-    x <- Acid.query uperms $ UserPerms root
-    print x
     pure $ uperms :+ NullState
 
 main :: IO ()
@@ -56,13 +54,15 @@ main = do
             states <- initAcid config
             let server = configServer (connection $ config)
                 nt = NT $ \x -> runAcidT x states
-            botloop server nt (standard (channels config) <> irc useful <> irc permissions)
+            botloop server nt (standard (channels config) <> bot)
+  where
+    bot = irc useful <> irc permissions
 
 useful ::
        (AcidMember UserPermissions s, MonadAcid s m, MonadChan m)
     => Bot m Privmsg ()
 useful =
-    allowed ([KickJlaw] :: [Perm]) . answeringP $ \_ ->
+    answeringP $ \_ ->
         filterB (== "!jlaw") $ do
             message
                 "#voco-example"
