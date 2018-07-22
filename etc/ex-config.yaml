@@ -1,0 +1,12 @@
+root:
+    - tsahyt
+    - null
+    - user/tsahyt
+connection:
+    hostname: "irc.snoonet.org"
+    port: 6697
+    ssl: true
+channels:
+    - "#voco-example"
+nick:
+    "botnet-ng"

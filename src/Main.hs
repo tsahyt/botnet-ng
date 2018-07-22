@@ -1,22 +1,27 @@
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 module Main where
 
+import Data.Config
 import Control.Category
 import Network.Voco
-import Network.Yak.Client
+import Network.Yak.Client hiding (hostname)
 import Data.Monoid ((<>))
+import System.Exit
 
 import Prelude hiding (id, (.))
 
-server :: IRCServer
-server =
+configServer :: ConnectionConfig -> IRCServer
+configServer ConnectionConfig{..} =
     IRCServer
     { serverConnectionParams =
         ConnectionParams
-            { connectionHostname = "irc.snoonet.org"
-            , connectionPort = 6697
-            , connectionUseSecure = Just $ TLSSettingsSimple False False False
+            { connectionHostname = hostname
+            , connectionPort = port
+            , connectionUseSecure =
+                if ssl then Just $ TLSSettingsSimple False False False
+                       else Nothing
             , connectionUseSocks = Nothing }
     , serverPass = Nothing
     , botUser = "bot"
@@ -25,7 +30,14 @@ server =
     }
 
 main :: IO ()
-main = botloop server id (standard ["#linuxmasterrace"] <> irc useful)
+main = do
+    cli <- parseCLI
+    c <- readConfig (unHelpful $ config cli)
+    case c of
+        Left e -> print e >> exitFailure
+        Right config -> do
+            let server = configServer (connection $ config)
+            botloop server id (standard (channels config) <> irc useful)
 
 useful :: MonadChan m => Bot m Privmsg ()
 useful = answeringP $ \_ -> filterB (== "!jlaw") $ do

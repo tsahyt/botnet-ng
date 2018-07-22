@@ -4,7 +4,7 @@ packages:
 extra-deps:
     - acid-state-0.14.3
     - github: tsahyt/yak
-      commit: 939b1ad245d0758151b080c1bc01a58e7e0acf13
+      commit: e122d2c0dcb25387d44ab6195e9076e79a6f782c 
     - github: tsahyt/voco
       commit: 1bd635dfd958ad593bee8d9811ff993dcdd859a8
 
