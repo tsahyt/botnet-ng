@@ -26,6 +26,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Writer
 import Control.Monad.Zip
+import Control.Monad.Chan
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.List
@@ -44,7 +45,7 @@ class AcidMember x (xs :: [*]) where
 instance AcidMember x rs => AcidMember x (a ': rs) where
     member (_ :+ rs) = member rs
 
-instance AcidMember x (x ': xs) where
+instance {-# OVERLAPPING #-} AcidMember x (x ': xs) where
     member (x :+ _) = x
 
 newtype AcidT (ts :: [*]) m a = AcidT
@@ -84,6 +85,12 @@ instance MonadWriter r m => MonadWriter r (AcidT s m) where
     tell = lift . tell
     listen k = AcidT $ listen (runAcidT' k)
     pass k = AcidT $ pass (runAcidT' k)
+
+instance MonadChan m => MonadChan (AcidT s m) where
+    newChan = lift newChan
+    writeChan c = lift . writeChan c
+    readChan = lift . readChan
+    dupChan = lift . dupChan
 
 class MonadIO m =>
       MonadAcid ts m | m -> ts where

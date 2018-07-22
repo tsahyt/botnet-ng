@@ -14,6 +14,7 @@ module Components.Permission
     ( allowed
     , permissions
     , Perm(..)
+    , allPerms
     , perm
     , Permissions
     , UserPermissions
@@ -47,23 +48,27 @@ import Orphans ()
 import qualified Data.Set as Set
 import qualified Data.Attoparsec.Text as A
 
-data Perm =
-    SetPermissions -- ^ "set-perms"
-    deriving (Eq, Ord, Show, Read)
+data Perm
+    = SetPermissions -- ^ "set-perms"
+    | KickJlaw -- ^ "kick-jlaw"
+    deriving (Eq, Ord, Show, Read, Enum)
+
+allPerms :: [Perm]
+allPerms = [SetPermissions ..]
 
 permDict :: [(Perm, Text)]
-permDict = [(SetPermissions, "set-perms")]
+permDict = [(SetPermissions, "set-perms"), (KickJlaw, "kick-jlaw")]
 
 perm :: A.Parser Perm
 perm = A.choice . map (\(p,s) -> p <$ A.string s) $ permDict
 
 newtype Permissions =
     Perms (Set Perm)
-    deriving (Semigroup, Monoid)
+    deriving (Show, Semigroup, Monoid)
 
 newtype UserPermissions =
     UPerms (Map Host Permissions)
-    deriving (Semigroup, Monoid)
+    deriving (Show, Semigroup, Monoid)
 
 makeWrapped ''UserPermissions
 deriveSafeCopy 0 'base ''Perm
@@ -80,7 +85,11 @@ revoke :: Permissions -> Perm -> Permissions
 revoke (Perms ps) p = (Perms $ Set.delete p ps)
 
 grantU :: Host -> Perm -> Update UserPermissions ()
-grantU h p = _Wrapped . at h . _Just %= flip grant p
+grantU h p = do
+    ps <- use $ _Wrapped . at h
+    case ps of
+        Nothing -> _Wrapped . at h .= Just (Perms $ Set.singleton p)
+        Just _ -> _Wrapped . at h . _Just %= flip grant p
 
 revokeU :: Host -> Perm -> Update UserPermissions ()
 revokeU h p = _Wrapped . at h . _Just %= flip revoke p

@@ -1,16 +1,22 @@
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Main where
 
+import Control.Monad.Acid
 import Data.Config
-import Control.Category
-import Network.Voco
-import Network.Yak.Client hiding (hostname)
 import Data.Monoid ((<>))
+import Network.Voco hiding (nick)
+import Network.Yak.Client hiding (hostname, nick)
 import System.Exit
+import System.FilePath
 
-import Prelude hiding (id, (.))
+import qualified Data.Acid as Acid
+
+import Components.Permission
 
 configServer :: ConnectionConfig -> IRCServer
 configServer ConnectionConfig{..} =
@@ -29,6 +35,17 @@ configServer ConnectionConfig{..} =
     , botNickname = "botnet-ng"
     }
 
+type States = '[UserPermissions]
+
+initAcid :: Config -> IO (AcidStates States)
+initAcid Config{..} = do
+    uperms <- Acid.openLocalStateFrom (dbroot </> "user-permissions") mempty
+    -- grant root all permissions on start
+    mapM_ (\p -> Acid.update uperms $ GrantU root p) allPerms
+    x <- Acid.query uperms $ UserPerms root
+    print x
+    pure $ uperms :+ NullState
+
 main :: IO ()
 main = do
     cli <- parseCLI
@@ -36,9 +53,17 @@ main = do
     case c of
         Left e -> print e >> exitFailure
         Right config -> do
+            states <- initAcid config
             let server = configServer (connection $ config)
-            botloop server id (standard (channels config) <> irc useful)
+                nt = NT $ \x -> runAcidT x states
+            botloop server nt (standard (channels config) <> irc useful <> irc permissions)
 
-useful :: MonadChan m => Bot m Privmsg ()
-useful = answeringP $ \_ -> filterB (== "!jlaw") $ do
-    kick "#linuxmasterrace" "Jennifer-Lawrence" (Just "hi")
+useful ::
+       (AcidMember UserPermissions s, MonadAcid s m, MonadChan m)
+    => Bot m Privmsg ()
+useful =
+    allowed ([KickJlaw] :: [Perm]) . answeringP $ \_ ->
+        filterB (== "!jlaw") $ do
+            message
+                "#voco-example"
+                "if you people hadn't kicked jlaw already, I would do it now"

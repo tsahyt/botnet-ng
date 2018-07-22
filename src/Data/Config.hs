@@ -30,6 +30,7 @@ data Config = Config
     , connection :: ConnectionConfig
     , channels :: NonEmpty Channel
     , nick :: Nickname
+    , dbroot :: FilePath
     } deriving (Generic, FromJSON)
 
 data ConnectionConfig = ConnectionConfig

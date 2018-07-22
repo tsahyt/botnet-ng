@@ -1,7 +1,9 @@
 root:
     - tsahyt
-    - null
+    - tsahyt
     - user/tsahyt
+dbroot:
+    "./state"
 connection:
     hostname: "irc.snoonet.org"
     port: 6697
