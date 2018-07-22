@@ -28,4 +28,6 @@ executable botnet-ng
                        acid-state >= 0.14.3 && < 0.15,
                        safecopy >= 0.9.4,
                        containers >= 0.5.10 && < 0.6,
-                       lens >= 4.16 && < 5
+                       lens >= 4.16 && < 5,
+                       attoparsec >= 0.13,
+                       text >= 1.1.1.3
