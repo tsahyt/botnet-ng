@@ -26,6 +26,6 @@ executable botnet-ng
                        transformers >= 0.4 && < 0.6,
                        mtl >= 2.2 && < 3,
                        acid-state >= 0.14.3 && < 0.15,
-                       safecopy >= 0.94,
+                       safecopy >= 0.9.4,
                        containers >= 0.5.10 && < 0.6,
                        lens >= 4.16 && < 5
