@@ -33,6 +33,7 @@ import Control.Monad.Reader
 import Control.Applicative
 import Data.Acid hiding (query, update)
 import Data.Map (Map)
+import Data.Text (Text)
 import Data.SafeCopy
 import Data.Semigroup
 import Data.Set (Set)
@@ -49,10 +50,11 @@ data Perm =
     SetPermissions -- ^ "set-perms"
     deriving (Eq, Ord, Show, Read)
 
+permDict :: [(Perm, Text)]
+permDict = [(SetPermissions, "set-perms")]
+
 perm :: A.Parser Perm
-perm = A.choice
-    [ SetPermissions <$ A.string "set-perms"
-    ]
+perm = A.choice . map (\(p,s) -> p <$ A.string s) $ permDict
 
 newtype Permissions =
     Perms (Set Perm)
@@ -137,7 +139,7 @@ permCmd =
                 optional (A.char '@' *> A.takeTill (A.inClass " \r\n"))
 
 -- | A bot capable of updating permissions, which can be used by any user with
--- the 'SetPermissions' permission. See the 'Perm' type ('perm' parser) for
+-- the 'SetPermissions' permission. See the 'Perm' type ('permDict') for
 -- legal permissions.
 --
 -- Syntax:
