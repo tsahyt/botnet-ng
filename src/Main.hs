@@ -10,12 +10,12 @@ import Control.Monad.Acid
 import Data.Config
 import Data.Monoid ((<>))
 import Network.Voco hiding (nick)
-import Network.Yak.Client hiding (hostname, nick)
 import System.Exit
 import System.FilePath
 
 import qualified Data.Acid as Acid
 
+import Components.Citation
 import Components.Permission
 
 configServer :: ConnectionConfig -> IRCServer
@@ -56,14 +56,4 @@ main = do
                 nt = NT $ \x -> runAcidT x states
             botloop server nt (standard (channels config) <> bot)
   where
-    bot = irc useful <> irc permissions
-
-useful ::
-       (AcidMember UserPermissions s, MonadAcid s m, MonadChan m)
-    => Bot m Privmsg ()
-useful =
-    answeringP $ \_ ->
-        filterB (== "!jlaw") $ do
-            message
-                "#voco-example"
-                "if you people hadn't kicked jlaw already, I would do it now"
+    bot = irc permissions <> irc (citations "etc/quotes")

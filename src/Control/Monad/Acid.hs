@@ -19,21 +19,22 @@ module Control.Monad.Acid
     ) where
 
 import Control.Applicative
+import Control.Monad.Chan
 import Control.Monad.Cont
 import Control.Monad.Except
 import Control.Monad.Fail
+import Control.Monad.Random
 import Control.Monad.Reader
 import Control.Monad.State
+import Control.Monad.Trans.Identity
+import Control.Monad.Trans.List
+import Control.Monad.Trans.Maybe
+import Control.Monad.Trans.RWS (RWST)
 import Control.Monad.Writer
 import Control.Monad.Zip
-import Control.Monad.Chan
-import Control.Monad.Trans.Identity
-import Control.Monad.Trans.Maybe
-import Control.Monad.Trans.List
-import Control.Monad.Trans.RWS (RWST)
-import Network.Voco.Core (Bot, liftBot)
 import Data.Acid hiding (update, query)
 import Data.Acid.Advanced
+import Network.Voco.Core (Bot, liftBot)
 
 data AcidStates (ts :: [*]) where
     NullState :: AcidStates '[]
@@ -91,6 +92,12 @@ instance MonadChan m => MonadChan (AcidT s m) where
     writeChan c = lift . writeChan c
     readChan = lift . readChan
     dupChan = lift . dupChan
+
+instance MonadRandom m => MonadRandom (AcidT s m) where
+    getRandomR = lift . getRandomR
+    getRandom = lift getRandom
+    getRandomRs = lift . getRandomRs
+    getRandoms = lift getRandoms
 
 class MonadIO m =>
       MonadAcid ts m | m -> ts where

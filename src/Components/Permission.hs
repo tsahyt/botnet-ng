@@ -2,13 +2,13 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE LambdaCase #-}
 
 module Components.Permission
     ( allowed
@@ -19,14 +19,8 @@ module Components.Permission
     , perm
     , Permissions
     , UserPermissions
-    -- * Pure Permission Changes
-    , allows
-    , grant
-    , revoke
-    -- * Acid Queries/Updates
+    -- * External Update
     , GrantU(..)
-    , RevokeU(..)
-    , UserPerms(..)
     ) where
 
 import Control.Applicative
@@ -46,11 +40,11 @@ import Network.Yak
 import Network.Yak.Client
 import Orphans ()
 
-import qualified Data.Set as Set
 import qualified Data.Attoparsec.Text as A
+import qualified Data.Set as Set
 
-data Perm
-    = SetPermissions -- ^ "set-perms"
+data Perm =
+    SetPermissions -- ^ "set-perms"
     deriving (Eq, Ord, Show, Read, Enum)
 
 allPerms :: [Perm]
@@ -60,17 +54,16 @@ permDict :: [(Perm, Text)]
 permDict = [(SetPermissions, "set-perms")]
 
 perm :: A.Parser Perm
-perm = A.choice . map (\(p,s) -> p <$ A.string s) $ permDict
+perm = A.choice . map (\(p, s) -> p <$ A.string s) $ permDict
 
 newtype Permissions =
     Perms (Set Perm)
     deriving (Show, Semigroup, Monoid)
 
-data UserPermissions = UPerms 
+data UserPermissions = UPerms
     { _uperms :: Map Host Permissions
     , _blacklist :: Set Host
-    }
-    deriving (Show)
+    } deriving (Show)
 
 makeLenses ''UserPermissions
 
@@ -82,7 +75,9 @@ instance Monoid UserPermissions where
     mempty = UPerms mempty mempty
 
 deriveSafeCopy 0 'base ''Perm
+
 deriveSafeCopy 0 'base ''Permissions
+
 deriveSafeCopy 0 'base ''UserPermissions
 
 allows :: Permissions -> Perm -> Bool
