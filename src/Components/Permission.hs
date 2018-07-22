@@ -10,7 +10,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Data.Permission
+module Components.Permission
     ( allowed
     , permissions
     , Perm(..)
@@ -27,21 +27,22 @@ module Data.Permission
     , UserPerms(..)
     ) where
 
+import Control.Applicative
 import Control.Lens
 import Control.Monad.Acid
 import Control.Monad.Reader
-import Control.Applicative
 import Data.Acid hiding (query, update)
 import Data.Map (Map)
-import Data.Text (Text)
 import Data.SafeCopy
 import Data.Semigroup
 import Data.Set (Set)
+import Data.Text (Text)
 import GHC.TypeLits (KnownSymbol)
 import Network.Voco.Combinators
 import Network.Voco.Core (Bot)
 import Network.Yak
 import Network.Yak.Client
+import Orphans ()
 
 import qualified Data.Set as Set
 import qualified Data.Attoparsec.Text as A
@@ -67,7 +68,6 @@ newtype UserPermissions =
 makeWrapped ''UserPermissions
 deriveSafeCopy 0 'base ''Perm
 deriveSafeCopy 0 'base ''Permissions
-deriveSafeCopy 0 'base ''Host
 deriveSafeCopy 0 'base ''UserPermissions
 
 allows :: Permissions -> Perm -> Bool
