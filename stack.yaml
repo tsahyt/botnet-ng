@@ -2,6 +2,7 @@ resolver: lts-11.17
 packages:
 - .
 extra-deps:
+    - acid-state-0.14.3
     - github: tsahyt/yak
       commit: 939b1ad245d0758151b080c1bc01a58e7e0acf13
     - github: tsahyt/voco
@@ -10,7 +11,7 @@ extra-deps:
 # docker build
 image:
   containers:
-      base: "fpco/haskell-scratch"
+    - base: "fpco/haskell-scratch"
       name: "tsahyt/botnet2"
       entrypoints:
         - botnet2
