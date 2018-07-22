@@ -87,7 +87,7 @@ allowed ps b = do
     i <- msgPrefix <$> query
     case i of
         Just (PrefixUser h) -> do
-            uperms <- liftBot . queryAcid $ UserPerms h
+            uperms <- queryAcid $ UserPerms h
             case uperms of
                 Just hps -> do
                     guard (all (hps `allows`) ps)

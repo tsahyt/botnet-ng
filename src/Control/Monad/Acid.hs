@@ -30,6 +30,7 @@ import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.List
 import Control.Monad.Trans.RWS (RWST)
+import Network.Voco.Core (Bot, liftBot)
 import Data.Acid hiding (update, query)
 import Data.Acid.Advanced
 
@@ -138,3 +139,7 @@ instance (Monoid w, MonadAcid s m) => MonadAcid s (RWST r w st m) where
 instance MonadAcid s m => MonadAcid s (ListT m) where
     updateAcid = lift . updateAcid
     queryAcid = lift . queryAcid
+
+instance MonadAcid s m => MonadAcid s (Bot m i) where
+    updateAcid = liftBot . updateAcid
+    queryAcid = liftBot . queryAcid
