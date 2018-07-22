@@ -4,12 +4,18 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Control.Monad.Acid
-    ( MonadAcid(..)
+    ( AcidStates(..)
+    , MonadAcid(..)
     , AcidT
     , runAcidT
     , mapAcidT
+    , AcidMember(..)
     ) where
 
 import Control.Applicative
@@ -27,8 +33,21 @@ import Control.Monad.Trans.RWS (RWST)
 import Data.Acid hiding (update, query)
 import Data.Acid.Advanced
 
-newtype AcidT s m a = AcidT
-    { runAcidT' :: ReaderT (AcidState s) m a
+data AcidStates (ts :: [*]) where
+    NullState :: AcidStates '[]
+    (:+) :: AcidState t -> AcidStates ts -> AcidStates (t ': ts)
+
+class AcidMember x (xs :: [*]) where
+    member :: AcidStates xs -> AcidState x
+
+instance AcidMember x rs => AcidMember x (a ': rs) where
+    member (_ :+ rs) = member rs
+
+instance AcidMember x (x ': xs) where
+    member (x :+ _) = x
+
+newtype AcidT (ts :: [*]) m a = AcidT
+    { runAcidT' :: ReaderT (AcidStates ts) m a
     } deriving ( Functor
                , Applicative
                , Monad
@@ -42,7 +61,7 @@ newtype AcidT s m a = AcidT
                , MonadCont
                )
 
-runAcidT :: AcidT s m a -> AcidState s -> m a
+runAcidT :: AcidT ts m a -> AcidStates ts -> m a
 runAcidT k s = runReaderT (runAcidT' k) s
 
 mapAcidT :: (m a -> n b) -> AcidT s m a -> AcidT s n b
@@ -65,50 +84,57 @@ instance MonadWriter r m => MonadWriter r (AcidT s m) where
     listen k = AcidT $ listen (runAcidT' k)
     pass k = AcidT $ pass (runAcidT' k)
 
-class MonadIO m => MonadAcid s m | m -> s where
-    update :: (s ~ MethodState e, UpdateEvent e) => e -> m (MethodResult e)
-    query :: (s ~ MethodState e, QueryEvent e) => e -> m (MethodResult e)
+class MonadIO m =>
+      MonadAcid ts m | m -> ts where
+    updateAcid ::
+           (AcidMember s ts, s ~ MethodState e, UpdateEvent e)
+        => e
+        -> m (MethodResult e)
+    queryAcid ::
+           (AcidMember s ts, s ~ MethodState e, QueryEvent e)
+        => e
+        -> m (MethodResult e)
 
-instance MonadIO m => MonadAcid s (AcidT s m) where
-    update u = AcidT $ do
-        st <- ask
+instance MonadIO m => MonadAcid ts (AcidT ts m) where
+    updateAcid u = AcidT $ do
+        st <- member <$> ask
         update' st u
-    query u = AcidT $ do
-        st <- ask
+    queryAcid u = AcidT $ do
+        st <- member <$> ask
         query' st u
 
 instance MonadAcid s m => MonadAcid s (StateT st m) where
-    update = lift . update
-    query = lift . query
+    updateAcid = lift . updateAcid
+    queryAcid = lift . queryAcid
 
 instance MonadAcid s m => MonadAcid s (ReaderT r m) where
-    update = lift . update
-    query = lift . query
+    updateAcid = lift . updateAcid
+    queryAcid = lift . queryAcid
 
 instance MonadAcid s m => MonadAcid s (ExceptT r m) where
-    update = lift . update
-    query = lift . query
+    updateAcid = lift . updateAcid
+    queryAcid = lift . queryAcid
 
 instance MonadAcid s m => MonadAcid s (IdentityT m) where
-    update = lift . update
-    query = lift . query
+    updateAcid = lift . updateAcid
+    queryAcid = lift . queryAcid
 
 instance MonadAcid s m => MonadAcid s (MaybeT m) where
-    update = lift . update
-    query = lift . query
+    updateAcid = lift . updateAcid
+    queryAcid = lift . queryAcid
 
 instance (Monoid w, MonadAcid s m) => MonadAcid s (WriterT w m) where
-    update = lift . update
-    query = lift . query
+    updateAcid = lift . updateAcid
+    queryAcid = lift . queryAcid
 
 instance MonadAcid s m => MonadAcid s (ContT w m) where
-    update = lift . update
-    query = lift . query
+    updateAcid = lift . updateAcid
+    queryAcid = lift . queryAcid
 
-instance (Monoid w, MonadAcid s m) => MonadAcid s (RWST r w s m) where
-    update = lift . update
-    query = lift . query
+instance (Monoid w, MonadAcid s m) => MonadAcid s (RWST r w st m) where
+    updateAcid = lift . updateAcid
+    queryAcid = lift . queryAcid
 
 instance MonadAcid s m => MonadAcid s (ListT m) where
-    update = lift . update
-    query = lift . query
+    updateAcid = lift . updateAcid
+    queryAcid = lift . queryAcid
