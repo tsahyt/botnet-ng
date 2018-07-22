@@ -8,13 +8,18 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 
 module Data.Permission
-    ( Perm(..)
+    ( allowed
+    , Perm(..)
     , Permissions
     , UserPermissions
+    -- * Pure Permission Changes
     , allows
     , grant
     , revoke
-    , allowed
+    -- * Acid Queries/Updates
+    , GrantU(..)
+    , RevokeU(..)
+    , UserPerms(..)
     ) where
 
 import Control.Lens
@@ -69,6 +74,10 @@ userPerms h = view $ _Wrapped . at h
 
 makeAcidic ''UserPermissions ['grantU, 'revokeU, 'userPerms]
 
+-- | Guard a bot over an IRC message using with a collection of required
+-- permissions. The bot will fail as long as any permission in the given
+-- 'Foldable' is not present for the user triggering it, as determined by the
+-- message prefix.
 allowed ::
        (AcidMember UserPermissions s, MonadAcid s m, Foldable t)
     => t Perm
