@@ -43,15 +43,16 @@ import Orphans ()
 import qualified Data.Attoparsec.Text as A
 import qualified Data.Set as Set
 
-data Perm =
-    SetPermissions -- ^ "set-perms"
+data Perm
+    = SetPermissions -- ^ "set-perms"
+    | ConfigReload -- ^ "config-reload"
     deriving (Eq, Ord, Show, Read, Enum)
 
 allPerms :: [Perm]
 allPerms = [SetPermissions ..]
 
 permDict :: [(Perm, Text)]
-permDict = [(SetPermissions, "set-perms")]
+permDict = [(SetPermissions, "set-perms"), (ConfigReload, "config-reload")]
 
 perm :: A.Parser Perm
 perm = A.choice . map (\(p, s) -> p <$ A.string s) $ permDict

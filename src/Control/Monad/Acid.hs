@@ -40,6 +40,8 @@ data AcidStates (ts :: [*]) where
     NullState :: AcidStates '[]
     (:+) :: AcidState t -> AcidStates ts -> AcidStates (t ': ts)
 
+infixr 5 :+
+
 class AcidMember x (xs :: [*]) where
     member :: AcidStates xs -> AcidState x
 

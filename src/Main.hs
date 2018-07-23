@@ -7,6 +7,7 @@
 module Main where
 
 import Control.Monad.Acid
+import Control.Monad.Reader
 import Data.Config
 import Data.Monoid ((<>))
 import Network.Voco hiding (nick)
@@ -35,14 +36,17 @@ configServer ConnectionConfig{..} =
     , botNickname = "botnet-ng"
     }
 
-type States = '[UserPermissions]
+type States = '[UserPermissions, Citations]
 
 initAcid :: Config -> IO (AcidStates States)
 initAcid Config {..} = do
-    uperms <- Acid.openLocalStateFrom (dbroot </> "user-permissions") mempty
+    uperms <-
+        Acid.openLocalStateFrom (dbRoot paths </> "user-permissions") mempty
+    cites <-
+        Acid.openLocalStateFrom (dbRoot paths </> "citations") mempty
     -- grant root all permissions on start
     mapM_ (\p -> Acid.update uperms $ GrantU root p) allPerms
-    pure $ uperms :+ NullState
+    pure $ uperms :+ cites :+ NullState
 
 main :: IO ()
 main = do
@@ -53,7 +57,7 @@ main = do
         Right config -> do
             states <- initAcid config
             let server = configServer (connection $ config)
-                nt = NT $ \x -> runAcidT x states
+                nt = NT $ \x -> runReaderT (runAcidT x states) config
             botloop server nt (standard (channels config) <> bot)
   where
-    bot = irc permissions <> irc (citations "etc/quotes")
+    bot = irc $ permissions <> citations

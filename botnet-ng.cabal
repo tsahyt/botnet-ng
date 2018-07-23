@@ -35,6 +35,7 @@ executable botnet-ng
                        attoparsec >= 0.13,
                        text >= 1.1.1.3,
                        yaml >= 0.8.30,
+                       aeson >= 1.2 && < 1.4,
                        optparse-generic >= 1.2,
                        filepath >= 1.4 && < 1.5,
                        directory >= 1.3 && < 1.4,

@@ -2,8 +2,9 @@ root:
     - tsahyt
     - tsahyt
     - user/tsahyt
-dbroot:
-    "./state"
+paths:
+    db-root: "./state"
+    citation-root: "./etc/quotes"
 connection:
     hostname: "irc.snoonet.org"
     port: 6697

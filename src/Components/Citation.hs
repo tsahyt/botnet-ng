@@ -1,14 +1,29 @@
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Components.Citation
-    ( citations
+    ( Citations
+    , citations
     ) where
 
+import Components.Permission
+import Control.Lens
+import Control.Monad.Acid
 import Control.Monad.IO.Class
 import Control.Monad.Random
+import Control.Monad.Reader
+import Control.Monad.State
+import Data.Acid (Query, Update, makeAcidic)
 import Data.Array
+import Data.Config (Config, citationRoot, paths)
 import Data.Maybe (fromMaybe)
 import Data.Ord (comparing)
+import Data.SafeCopy
+import Data.Semigroup
 import Data.Text (Text)
 import Data.Vector (Vector)
 import Network.Voco
@@ -47,10 +62,24 @@ search pat xs
     | otherwise = Just . V.minIndexBy (comparing (similarity pat)) $ xs
 
 {-# INLINE search #-}
-loadCites :: MonadIO m => FilePath -> m [(Text, Vector Text)]
+newtype Citations =
+    Citations [(Text, Vector Text)]
+    deriving (Semigroup, Monoid)
+
+deriveSafeCopy 0 'base ''Citations
+
+setCites :: Citations -> Update Citations ()
+setCites = put
+
+getCites :: Query Citations Citations
+getCites = ask
+
+makeAcidic ''Citations ['setCites, 'getCites]
+
+loadCites :: MonadIO m => FilePath -> m Citations
 loadCites path = do
     files <- liftIO $ listDirectory path
-    mapM (load . (path </>)) files
+    Citations <$> mapM (load . (path </>)) files
   where
     load file = do
         let name = dropExtension . takeFileName $ file
@@ -58,11 +87,27 @@ loadCites path = do
         pure (T.pack name, content)
 
 citations ::
-       (MonadChan m, MonadRandom m, MonadIO m) => FilePath -> Bot m Privmsg ()
-citations path =
-    answeringP $ \src -> do
-        cs <- loadCites path
-        asum $ map (uncurry (cite src)) cs
+       ( MonadChan m
+       , MonadRandom m
+       , MonadReader Config m
+       , MonadAcid s m
+       , AcidMember UserPermissions s
+       , AcidMember Citations s
+       , MonadIO m
+       )
+    => Bot m Privmsg ()
+citations = answer <|> reload
+  where
+    reload =
+        allowed [ConfigReload] .
+        on (view privmsgMessage) . filterB (== ":reload-cites") $ do
+            path <- reader (citationRoot . paths)
+            cs <- loadCites path
+            updateAcid $ SetCites cs
+    answer =
+        answeringP $ \src -> do
+            Citations cs <- queryAcid GetCites
+            asum $ map (uncurry (cite src)) cs
 
 data QuoteCmd
     = Random
@@ -79,6 +124,9 @@ qcmd cmd = A.string (T.cons ':' cmd) *> go
             , pure Random
             ]
 
+-- | A bot that prints out a citation, given some source (to print it back out
+-- to), a name for the citation category, and the data contained in said
+-- category.
 cite ::
        (MonadChan m, MonadRandom m)
     => Either Channel Nickname
