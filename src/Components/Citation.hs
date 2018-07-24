@@ -10,19 +10,14 @@ module Components.Citation
     , citations
     ) where
 
-import Components.Permission
-import Control.Lens
-import Control.Monad.Acid
 import Control.Monad.IO.Class
 import Control.Monad.Random
 import Control.Monad.Reader
-import Control.Monad.State
-import Data.Acid (Query, Update, makeAcidic)
 import Data.Array
 import Data.Config (Config, citationRoot, paths)
 import Data.Maybe (fromMaybe)
-import Data.Ord (comparing)
-import Data.SafeCopy
+import Data.Ord (comparing, Down(..))
+import Data.List (sortBy)
 import Data.Semigroup
 import Data.Text (Text)
 import Data.Vector (Vector)
@@ -66,20 +61,11 @@ newtype Citations =
     Citations [(Text, Vector Text)]
     deriving (Semigroup, Monoid)
 
-deriveSafeCopy 0 'base ''Citations
-
-setCites :: Citations -> Update Citations ()
-setCites = put
-
-getCites :: Query Citations Citations
-getCites = ask
-
-makeAcidic ''Citations ['setCites, 'getCites]
-
 loadCites :: MonadIO m => FilePath -> m Citations
 loadCites path = do
     files <- liftIO $ listDirectory path
-    Citations <$> mapM (load . (path </>)) files
+    Citations <$>
+        mapM (load . (path </>)) (sortBy (comparing $ Down . length) files)
   where
     load file = do
         let name = dropExtension . takeFileName $ file
@@ -90,24 +76,14 @@ citations ::
        ( MonadChan m
        , MonadRandom m
        , MonadReader Config m
-       , MonadAcid s m
-       , AcidMember UserPermissions s
-       , AcidMember Citations s
        , MonadIO m
        )
     => Bot m Privmsg ()
-citations = answer <|> reload
-  where
-    reload =
-        allowed [ConfigReload] .
-        on (view privmsgMessage) . filterB (== ":reload-cites") $ do
-            path <- reader (citationRoot . paths)
-            cs <- loadCites path
-            updateAcid $ SetCites cs
-    answer =
-        answeringP $ \src -> do
-            Citations cs <- queryAcid GetCites
-            asum $ map (uncurry (cite src)) cs
+citations =
+    answeringP $ \src -> do
+        path <- reader (citationRoot . paths)
+        Citations cs <- loadCites path
+        asum $ map (uncurry (cite src)) cs
 
 data QuoteCmd
     = Random

@@ -36,17 +36,15 @@ configServer ConnectionConfig{..} =
     , botNickname = "botnet-ng"
     }
 
-type States = '[UserPermissions, Citations]
+type States = '[UserPermissions]
 
 initAcid :: Config -> IO (AcidStates States)
 initAcid Config {..} = do
     uperms <-
         Acid.openLocalStateFrom (dbRoot paths </> "user-permissions") mempty
-    cites <-
-        Acid.openLocalStateFrom (dbRoot paths </> "citations") mempty
     -- grant root all permissions on start
     mapM_ (\p -> Acid.update uperms $ GrantU root p) allPerms
-    pure $ uperms :+ cites :+ NullState
+    pure $ uperms :+ NullState
 
 main :: IO ()
 main = do
