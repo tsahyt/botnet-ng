@@ -21,6 +21,7 @@ executable botnet-ng
   other-modules:       Control.Monad.Acid
                        Components.Citation
                        Components.Permission
+                       Components.Misc
                        Data.Config
                        Orphans
   build-depends:       base >= 4.7 && < 5, 

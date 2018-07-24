@@ -18,6 +18,7 @@ import qualified Data.Acid as Acid
 
 import Components.Citation
 import Components.Permission
+import Components.Misc
 
 configServer :: ConnectionConfig -> IRCServer
 configServer ConnectionConfig{..} =
@@ -58,4 +59,4 @@ main = do
                 nt = NT $ \x -> runReaderT (runAcidT x states) config
             botloop server nt (standard (channels config) <> bot)
   where
-    bot = irc $ permissions <> citations
+    bot = (irc $ permissions <> citations) <> (irc source)
