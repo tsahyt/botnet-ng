@@ -45,14 +45,21 @@ import qualified Data.Set as Set
 
 data Perm
     = SetPermissions -- ^ "set-perms"
-    | ConfigReload -- ^ "config-reload"
+    | ManageChans -- ^ "manage-chans"
+    | ChangeNick -- ^ "change-nick"
+    | Speak -- ^ "speak"
     deriving (Eq, Ord, Show, Read, Enum)
 
 allPerms :: [Perm]
 allPerms = [SetPermissions ..]
 
 permDict :: [(Perm, Text)]
-permDict = [(SetPermissions, "set-perms"), (ConfigReload, "config-reload")]
+permDict =
+    [ (SetPermissions, "set-perms")
+    , (ManageChans, "manage-chans")
+    , (ChangeNick, "change-nick")
+    , (Speak, "speak")
+    ]
 
 perm :: A.Parser Perm
 perm = A.choice . map (\(p, s) -> p <$ A.string s) $ permDict
