@@ -39,8 +39,8 @@ admin =
         parsed (A.string ":nick" *> A.skipSpace *> A.takeText) $
         query >>= T.nick
     say =
-        parsed (A.string ":say" *> A.skipSpace *> sayP) $ do
-            query >>= uncurry message
+        parsed (A.string ":say" *> A.skipSpace *> sayP) $
+        query >>= uncurry message
 
 channelP :: A.Parser Channel
 channelP = do
