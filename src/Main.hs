@@ -16,6 +16,7 @@ import System.FilePath
 
 import qualified Data.Acid as Acid
 
+import Components.Admin
 import Components.Citation
 import Components.Interject
 import Components.Misc
@@ -60,4 +61,4 @@ main = do
                 nt = NT $ \x -> runReaderT (runAcidT x states) config
             botloop server nt (standard (channels config) <> bot)
   where
-    bot = (irc $ permissions <> citations <> interject) <> (irc source)
+    bot = (irc $ permissions <|> citations <|> interject <|> admin) <> (irc source)

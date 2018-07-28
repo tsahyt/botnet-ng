@@ -8,7 +8,7 @@ module Components.Admin
 import Components.Permission
 import Control.Lens (_Wrapped, view)
 import Control.Monad.Acid
-import Data.Text (Text, cons)
+import Data.Text (cons)
 import Network.Voco hiding (join)
 import Network.Yak (Channel(..), Message(..))
 import Network.Yak.Client
