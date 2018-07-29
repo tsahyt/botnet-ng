@@ -13,3 +13,5 @@ channels:
     - "#voco-example"
 nick:
     "botnet-ng"
+keys:
+    alpha-vantage: "DEMO"

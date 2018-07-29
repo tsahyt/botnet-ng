@@ -22,6 +22,7 @@ import Components.Interject
 import Components.Misc
 import Components.Permission
 import Components.Search
+import Components.Stock
 
 configServer :: ConnectionConfig -> IRCServer
 configServer ConnectionConfig{..} =
@@ -63,5 +64,6 @@ main = do
             botloop server nt (standard (channels config) <> bot)
   where
     bot =
-        (irc $ permissions <|> search <|> citations <|> interject <|> admin) <>
+        (irc $
+         permissions <|> search <|> stock <|> citations <|> interject <|> admin) <>
         (irc source)

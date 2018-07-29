@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Data.Config
     -- * Configuration File
@@ -10,20 +11,24 @@ module Data.Config
     , Config(..)
     , Paths(..)
     , ConnectionConfig(..)
+    , APIKeys(..)
     -- * Command Line
     , parseCLI
     , CLI(..)
     -- * Re-Export
     , unHelpful
+    -- * Combinators
+    , withKey
     ) where
 
 import Control.Monad.IO.Class
+import Control.Monad.Reader
 import Data.Yaml
 import Data.Char
 import Data.Aeson (genericParseJSON, Options(..), defaultOptions)
 import GHC.Generics
 import Data.List.NonEmpty (NonEmpty)
-import Network.Voco (HostName, PortNumber)
+import Network.Voco
 import Network.Yak.Types (Channel, Host, Nickname)
 import Options.Generic
 import Orphans ()
@@ -47,6 +52,7 @@ data Config = Config
     , channels :: NonEmpty Channel
     , nick :: Nickname
     , paths :: Paths
+    , keys :: APIKeys
     } deriving (Generic, FromJSON)
 
 data Paths = Paths
@@ -63,6 +69,25 @@ data ConnectionConfig = ConnectionConfig
     , port :: PortNumber
     , ssl :: Bool
     } deriving (Generic, FromJSON)
+
+data APIKeys = APIKeys
+    { alphaVantage :: Maybe Text }
+    deriving (Generic)
+
+instance FromJSON APIKeys where
+    parseJSON =
+        genericParseJSON $ defaultOptions {fieldLabelModifier = snakeCase}
+
+withKey ::
+       MonadReader Config m
+    => (APIKeys -> Maybe key)
+    -> (key -> Bot m i o)
+    -> Bot m i o
+withKey f g = do
+    k <- reader (f . keys)
+    case k of
+        Nothing -> abort
+        Just k' -> g k'
 
 readConfig :: MonadIO m => FilePath -> m (Either ParseException Config)
 readConfig = liftIO . decodeFileEither

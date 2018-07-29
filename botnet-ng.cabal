@@ -25,6 +25,7 @@ executable botnet-ng
                        Components.Misc
                        Components.Permission
                        Components.Search
+                       Components.Stock
                        Data.Config
                        Orphans
   build-depends:       base >= 4.7 && < 5, 
@@ -49,4 +50,5 @@ executable botnet-ng
                        vector >= 0.12 && < 0.13,
                        MonadRandom >= 0.5 && < 0.6,
                        parser-combinators >= 0.4,
-                       wreq >= 0.5.2 && < 0.6
+                       wreq >= 0.5.2 && < 0.6,
+                       time >= 1.8 && < 2
