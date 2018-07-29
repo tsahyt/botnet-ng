@@ -28,7 +28,7 @@ ddg :: (MonadIO m, MonadChan m) => Int -> Bot m Privmsg ()
 ddg limit =
     answeringP $ \src ->
         on (view _Wrapped) .
-        parsed (A.string ":ddg" *> A.skipSpace *> A.takeText) $ do
+        parsed (A.string ":ddg" *> A.skipSpace *> A.takeText) . asyncV $ do
             r <- ddGo =<< query
             case ddgProcess limit <$> r of
                 Just (TextAnswer answer url) ->
