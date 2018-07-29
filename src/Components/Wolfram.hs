@@ -20,11 +20,13 @@ import Control.Concurrent.STM
 import Control.Lens
 import Control.Monad.Reader
 import Data.Aeson.Lens
+import Data.ByteString.Lazy (toStrict)
 import Data.Config
 import Data.Coproduct
 import Data.Map (Map)
 import Data.Semigroup
 import Data.Text (Text)
+import Data.Text.Encoding (decodeUtf8)
 import Data.Time (UTCTime, diffUTCTime, getCurrentTime)
 import Network.Voco
 import Network.Wreq
@@ -58,8 +60,23 @@ wolfram ::
 wolfram =
     msgPrefix <$> query >>= \case
         Just (PrefixUser (Host n _ _)) ->
-            answeringP $ \src -> on (view _Wrapped) (conversation n src)
+            answeringP $ \src ->
+                on (view _Wrapped) (conversation n src <|> shortAnswer n src)
         _ -> abort
+
+shortAnswer ::
+       (MonadReader r m, HasConfig r, MonadIO m, MonadChan m)
+    => Nickname
+    -> Channel :|: Nickname -> Bot m Text ()
+shortAnswer nn src =
+    parsed (A.string ":wa" *> A.skipSpace *> A.takeText) . 
+    withKey wolframAlpha $ \k ->
+        asyncV $ do
+            q <- query
+            let opts = defaults & param "appid" .~ [k] & param "i" .~ [q]
+            r <- liftIO $ getWith opts "https://api.wolframalpha.com/v1/result"
+            message' src . Message $ nn <> ": " <>
+                decodeUtf8 (toStrict (r ^. responseBody))
 
 conversation ::
        ( MonadReader r m
@@ -72,21 +89,21 @@ conversation ::
     -> Channel :|: Nickname -> Bot m Text ()
 conversation nn src = do
     env <- ask
-    asyncV' (NT $ flip runReaderT env) $
-        parsed (A.string ":hal" *> A.skipSpace *> A.takeText) $ do
-            question <- query
-            previous <-
-                do tv <- view $ conversations . _Wrapped
-                   cs <- liftIO . atomically . readTVar $ tv
-                   pure $ cs ^. at nn
-            now <- liftIO getCurrentTime
-            ans <-
-                case previous of
-                    Nothing -> fresh question now
-                    Just (lastTime, convId, host :: Text)
-                        | diffUTCTime now lastTime > 180 -> fresh question now
-                        | otherwise -> continue question now convId host
-            message' src (Message $ nn <> ": " <> ans)
+    parsed (A.string ":hal" *> A.skipSpace *> A.takeText) .
+        asyncV' (NT $ flip runReaderT env) $ do
+        question <- query
+        previous <-
+            do tv <- view $ conversations . _Wrapped
+               cs <- liftIO . atomically . readTVar $ tv
+               pure $ cs ^. at nn
+        now <- liftIO getCurrentTime
+        ans <-
+            case previous of
+                Nothing -> fresh question now
+                Just (lastTime, convId, host :: Text)
+                    | diffUTCTime now lastTime > 180 -> fresh question now
+                    | otherwise -> continue question now convId host
+        message' src (Message $ nn <> ": " <> ans)
   where
     fresh question now =
         withKey wolframAlpha $ \k -> do
