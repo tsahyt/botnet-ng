@@ -23,9 +23,9 @@ executable botnet-ng
                        Components.Citation
                        Components.Interject
                        Components.Misc
+                       Components.Market
                        Components.Permission
                        Components.Search
-                       Components.Stock
                        Components.Wolfram
                        Data.Config
                        Orphans

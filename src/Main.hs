@@ -23,10 +23,10 @@ import qualified Data.Acid as Acid
 import Components.Admin
 import Components.Citation
 import Components.Interject
+import Components.Market
 import Components.Misc
 import Components.Permission
 import Components.Search
-import Components.Stock
 import Components.Wolfram
 
 configServer :: ConnectionConfig -> IRCServer
@@ -88,7 +88,7 @@ main = do
   where
     bot =
         (irc $
-         permissions <|> search <|> stock <|> citations <|>
+         permissions <|> search <|> markets <|> citations <|>
          agencies <|> interject <|> admin) <>
         (irc wolfram) <>
         (irc source)
