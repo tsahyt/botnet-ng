@@ -21,6 +21,7 @@ import Components.Citation
 import Components.Interject
 import Components.Misc
 import Components.Permission
+import Components.Search
 
 configServer :: ConnectionConfig -> IRCServer
 configServer ConnectionConfig{..} =
@@ -61,4 +62,6 @@ main = do
                 nt = NT $ \x -> runReaderT (runAcidT x states) config
             botloop server nt (standard (channels config) <> bot)
   where
-    bot = (irc $ permissions <|> citations <|> interject <|> admin) <> (irc source)
+    bot =
+        (irc $ permissions <|> search <|> citations <|> interject <|> admin) <>
+        (irc source)
