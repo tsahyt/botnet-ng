@@ -118,14 +118,13 @@ fmtCrypto CryptoQuote {..} =
     T.pack $
     printf
         ("%s: \002%s\x0F/\002%s\x0F @\003" <>
-         "2 %.2f\003 %s (%.2f USD), Market Cap: %.2f USD")
+         "2 %.2f\003 %s (%.2f USD)")
         cryptoName
         cryptoSymbol
         cryptoMarket
         priceMarket
         cryptoMarket
         priceUSD
-        cryptoMarketCap
 
 data CryptoQuote = CryptoQuote
     { cryptoSymbol :: Text
@@ -133,7 +132,6 @@ data CryptoQuote = CryptoQuote
     , cryptoMarket :: Text
     , priceMarket :: Double
     , priceUSD :: Double
-    , cryptoMarketCap :: Double
     , cryptoDate :: Text
     } deriving (Show, Eq)
 
@@ -169,8 +167,5 @@ avCrypto k sym market = do
                 _String
             pUSD <-
                 readMaybe . T.unpack $ dat ^. key "1b. price (USD)" . _String
-            cap <-
-                readMaybe . T.unpack $ dat ^. key "3. market cap (USD)" .
-                _String
-            pure $ CryptoQuote sym name market pMarket pUSD cap today
+            pure $ CryptoQuote sym name market pMarket pUSD today
     pure quote
