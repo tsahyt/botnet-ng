@@ -4,11 +4,13 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Data.Config
     -- * Configuration File
     ( readConfig
     , Config(..)
+    , HasConfig(..)
     , Paths(..)
     , ConnectionConfig(..)
     , APIKeys(..)
@@ -21,6 +23,8 @@ module Data.Config
     , withKey
     ) where
 
+import Control.Lens (view)
+import Control.Lens.TH
 import Control.Monad.IO.Class
 import Control.Monad.Reader
 import Data.Yaml
@@ -71,30 +75,33 @@ data ConnectionConfig = ConnectionConfig
     } deriving (Generic, FromJSON)
 
 data APIKeys = APIKeys
-    { alphaVantage :: Maybe Text }
+    { alphaVantage :: Maybe Text
+    , wolframAlpha :: Maybe Text }
     deriving (Generic)
 
 instance FromJSON APIKeys where
     parseJSON =
         genericParseJSON $ defaultOptions {fieldLabelModifier = snakeCase}
 
-withKey ::
-       MonadReader Config m
-    => (APIKeys -> Maybe key)
-    -> (key -> Bot m i o)
-    -> Bot m i o
-withKey f g = do
-    k <- reader (f . keys)
-    case k of
-        Nothing -> abort
-        Just k' -> g k'
-
 readConfig :: MonadIO m => FilePath -> m (Either ParseException Config)
 readConfig = liftIO . decodeFileEither
 
 data CLI = CLI
-    { config :: FilePath <?> "Path to configuration file"
+    { conf :: FilePath <?> "Path to configuration file"
     } deriving (Generic, ParseRecord)
 
 parseCLI :: MonadIO m => m CLI
 parseCLI = getRecord "botnet-ng"
+
+makeClassy ''Config
+
+withKey ::
+       (MonadReader r m, HasConfig r)
+    => (APIKeys -> Maybe key)
+    -> (key -> Bot m i o)
+    -> Bot m i o
+withKey f g = do
+    k <- reader (f . keys . view config)
+    case k of
+        Nothing -> abort
+        Just k' -> g k'

@@ -13,8 +13,9 @@ module Components.Citation
 import Control.Monad.IO.Class
 import Control.Monad.Random
 import Control.Monad.Reader
+import Control.Lens (view)
 import Data.Array
-import Data.Config (Config, citationRoot, paths)
+import Data.Config (citationRoot, paths, HasConfig(..))
 import Data.Maybe (fromMaybe)
 import Data.Ord (comparing, Down(..))
 import Data.List (sortBy)
@@ -75,13 +76,14 @@ loadCites path = do
 citations ::
        ( MonadChan m
        , MonadRandom m
-       , MonadReader Config m
+       , MonadReader r m
+       , HasConfig r
        , MonadIO m
        )
     => Bot m Privmsg ()
 citations =
     answeringP $ \src -> do
-        path <- reader (citationRoot . paths)
+        path <- reader (citationRoot . paths . view config)
         Citations cs <- loadCites path
         asum $ map (uncurry (cite src)) cs
 

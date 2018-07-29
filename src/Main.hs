@@ -4,8 +4,12 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE LambdaCase #-}
+
 module Main where
 
+import Control.Lens
 import Control.Monad.Acid
 import Control.Monad.Reader
 import Data.Config
@@ -23,25 +27,28 @@ import Components.Misc
 import Components.Permission
 import Components.Search
 import Components.Stock
+import Components.Wolfram
 
 configServer :: ConnectionConfig -> IRCServer
-configServer ConnectionConfig{..} =
+configServer ConnectionConfig {..} =
     IRCServer
     { serverConnectionParams =
-        ConnectionParams
-            { connectionHostname = hostname
-            , connectionPort = port
-            , connectionUseSecure =
-                if ssl then Just $ TLSSettingsSimple False False False
-                       else Nothing
-            , connectionUseSocks = Nothing }
+          ConnectionParams
+          { connectionHostname = hostname
+          , connectionPort = port
+          , connectionUseSecure =
+                if ssl
+                    then Just $ TLSSettingsSimple False False False
+                    else Nothing
+          , connectionUseSocks = Nothing
+          }
     , serverPass = Nothing
     , botUser = "bot"
     , botRealname = "bot"
     , botNickname = "botnet-ng"
     }
 
-type States = '[UserPermissions]
+type States = '[ UserPermissions]
 
 initAcid :: Config -> IO (AcidStates States)
 initAcid Config {..} = do
@@ -51,19 +58,37 @@ initAcid Config {..} = do
     mapM_ (\p -> Acid.update uperms $ GrantU root p) allPerms
     pure $ uperms :+ NullState
 
+data Environment = Environment
+    { _envConfig :: Config
+    , _envConversations :: Conversations
+    }
+
+makeLenses ''Environment
+
+instance HasConfig Environment where
+    config = envConfig
+
+instance HasConversations Environment where
+    conversations = envConversations
+
+mkEnvironment :: Config -> IO Environment
+mkEnvironment c = Environment <$> pure c <*> emptyConversations
+
 main :: IO ()
 main = do
     cli <- parseCLI
-    c <- readConfig (unHelpful $ config cli)
-    case c of
+    readConfig (unHelpful $ conf cli) >>= \case
         Left e -> print e >> exitFailure
-        Right config -> do
-            states <- initAcid config
-            let server = configServer (connection $ config)
-                nt = NT $ \x -> runReaderT (runAcidT x states) config
-            botloop server nt (standard (channels config) <> bot)
+        Right c -> do
+            states <- initAcid c
+            env <- mkEnvironment c
+            let server = configServer (connection $ c)
+                nt = NT $ \x -> runReaderT (runAcidT x states) env
+            botloop server nt (standard (channels c) <> bot)
   where
     bot =
         (irc $
-         permissions <|> search <|> stock <|> citations <|> interject <|> admin) <>
+         permissions <|> search <|> stock <|> citations <|>
+         interject <|> admin) <>
+        (irc wolfram) <>
         (irc source)

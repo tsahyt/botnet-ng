@@ -13,7 +13,6 @@ import Data.Aeson.Lens
 import Data.Config
 import Data.Monoid
 import Data.Text (Text)
-import qualified Data.Text as T
 import Network.Voco
 import Network.Wreq
 import Network.Yak.Client
@@ -22,8 +21,9 @@ import Text.Read
 import Text.Printf
 
 import qualified Data.Attoparsec.Text as A
+import qualified Data.Text as T
 
-stock :: (MonadIO m, MonadChan m, MonadReader Config m) => Bot m Privmsg ()
+stock :: (MonadIO m, MonadChan m, HasConfig r, MonadReader r m) => Bot m Privmsg ()
 stock =
     answeringP $ \src ->
         on (view _Wrapped) .

@@ -15,3 +15,4 @@ nick:
     "botnet-ng"
 keys:
     alpha-vantage: "DEMO"
+    wolfram-alpha: null
