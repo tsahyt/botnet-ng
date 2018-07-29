@@ -89,6 +89,6 @@ main = do
     bot =
         (irc $
          permissions <|> search <|> stock <|> citations <|>
-         interject <|> admin) <>
+         agencies <|> interject <|> admin) <>
         (irc wolfram) <>
         (irc source)
