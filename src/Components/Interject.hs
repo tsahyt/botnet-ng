@@ -5,7 +5,7 @@ module Components.Interject
     ) where
 
 import Control.Lens (_Wrapped, view)
-import Data.Char (isSpace)
+import Control.Monad.Combinators
 import Data.Monoid ((<>))
 import Data.Text (Text)
 import Network.Voco
@@ -22,9 +22,9 @@ interject =
             i <- query
             let int =
                     case i of
-                        Full gnu linux posix -> interjection gnu linux posix
-                        Short gnu linux -> shortInterjection gnu linux
-                        Empty -> shortInterjection "GNU" "Linux"
+                        Full gnu linux posix -> mkInterject gnu linux posix
+                        Short gnu linux -> mkInterjectS gnu linux
+                        Empty -> mkInterjectS "GNU" "Linux"
             message' src (Message int)
 
 data Interjection
@@ -38,17 +38,20 @@ data Interjection
 
 parseInterjection :: A.Parser Interjection
 parseInterjection =
-    A.string ":interject" *> A.skipSpace *>
-    (A.try full <|> A.try short <|> pure Empty) <* A.endOfInput
+    A.string ":interject" *> A.skipSpace *> (full <|> short <|> pure Empty) <*
+    A.endOfInput
   where
-    full = Full <$> component <*> component <*> component
-    short = Short <$> component <*> component
-    component = A.takeWhile1 (not . isSep) <* A.skipSpace
-    isSep c = isSpace c || A.inClass ",;:./" c
+    full = Full <$> (component <* sep) <*> (component <* sep) <*> component
+    short = Short <$> (component <* sep) <*> component
+    component = (quoted <|> single)
+    quoted = between (A.char '"') (A.char '"') (A.takeWhile1 (/= '"'))
+    single = A.takeWhile1 (not . isSep)
+    sep = (() <$ A.satisfy isSep) <* A.skipSpace
+    isSep = A.inClass ",;:./ "
 
-interjection :: Text -> Text -> Text -> Text
-interjection gnu linux posix =
-    shortInterjection gnu linux <>
+mkInterject :: Text -> Text -> Text -> Text
+mkInterject gnu linux posix =
+    mkInterjectS gnu linux <>
     mconcat
         [ linux
         , " is not an operating system unto itself, but rather another free\
@@ -61,8 +64,8 @@ interjection gnu linux posix =
         , posix
         ]
 
-shortInterjection :: Text -> Text -> Text
-shortInterjection gnu linux =
+mkInterjectS :: Text -> Text -> Text
+mkInterjectS gnu linux =
     mconcat
         [ "I'd just like to interject for a moment. What you're referring to as "
         , linux

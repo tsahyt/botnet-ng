@@ -31,7 +31,8 @@ admin =
         (on (view $ privmsgMessage . _Wrapped) say)
   where
     join =
-        parsed (A.string ":join" *> A.skipSpace *> channelP) $ query >>= T.join'
+        parsed (A.string ":join" *> A.skipSpace *> channelP) $ 
+        query >>= T.join'
     leave =
         parsed (A.string ":leave" *> A.skipSpace *> channelP) $
         query >>= flip T.part' Nothing
