@@ -22,6 +22,7 @@ import qualified Data.Acid as Acid
 
 import Components.Admin
 import Components.Citation
+import Components.Github
 import Components.Interject
 import Components.Market
 import Components.Misc
@@ -88,7 +89,7 @@ main = do
   where
     bot =
         (irc $
-         permissions <|> search <|> markets <|> citations <|>
+         permissions <|> search <|> github <|> markets <|> citations <|>
          agencies <|> interject <|> admin) <>
         (irc wolfram) <>
         (irc source)

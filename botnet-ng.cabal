@@ -21,9 +21,10 @@ executable botnet-ng
   other-modules:       Control.Monad.Acid
                        Components.Admin
                        Components.Citation
+                       Components.Github
                        Components.Interject
-                       Components.Misc
                        Components.Market
+                       Components.Misc
                        Components.Permission
                        Components.Search
                        Components.Wolfram
@@ -51,6 +52,6 @@ executable botnet-ng
                        vector >= 0.12 && < 0.13,
                        MonadRandom >= 0.5 && < 0.6,
                        parser-combinators >= 0.4,
-                       wreq >= 0.5.2 && < 0.6,
+                       wreq >= 0.5.2.1 && < 0.6,
                        time >= 1.8 && < 2,
                        stm >= 2.4 && < 3

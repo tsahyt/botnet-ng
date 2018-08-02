@@ -121,7 +121,7 @@ conversation nn src = do
                     liftIO . atomically . modifyTVar tv $ at nn .~
                         Just (now, convId, host)
                     pure ans
-                _ -> pure "I'm afraid I can't do that"
+                _ -> pure "I'm afraid I can't answer that"
     continue question now convId host =
         withKey wolframAlpha $ \k -> do
             let opts =
