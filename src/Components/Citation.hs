@@ -10,15 +10,16 @@ module Components.Citation
     , citations
     ) where
 
+import Control.Lens (view)
 import Control.Monad.IO.Class
 import Control.Monad.Random
 import Control.Monad.Reader
-import Control.Lens (view)
 import Data.Array
-import Data.Config (citationRoot, paths, HasConfig(..))
-import Data.Maybe (fromMaybe)
-import Data.Ord (comparing, Down(..))
+import Data.Config (HasConfig(..), citationRoot, paths)
+import Data.Helpful
 import Data.List (sortBy)
+import Data.Maybe (fromMaybe)
+import Data.Ord (Down(..), comparing)
 import Data.Semigroup
 import Data.Text (Text)
 import Data.Vector (Vector)
@@ -82,10 +83,10 @@ citations ::
        )
     => Bot m Privmsg ()
 citations =
-    answeringP $ \src -> do
+    (answeringP $ \src -> do
         path <- reader (citationRoot . paths . view config)
         Citations cs <- loadCites path
-        asum $ map (uncurry (cite src)) cs
+        asum $ map (uncurry (cite src)) cs)
 
 data QuoteCmd
     = Random
