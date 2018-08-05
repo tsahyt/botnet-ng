@@ -49,8 +49,9 @@ chainBot src cmd mch =
         start <- randomStart mch
         sents <- getRandomR (2, 3)
         msg <-
-            render . takeUntilN (== ".") sents . drop 1 . dropWhile (/= ".") <$>
-            runChain 500 start mch
+            render .
+            takeUntilN (== ".") sents . take 70 . drop 1 . dropWhile (/= ".") <$>
+            runChain 1000 start mch
         message' src (Message msg)
 
 loadChains :: MonadIO m => FilePath -> m [(Text, MarkovMap Text)]
@@ -67,9 +68,8 @@ newtype History a = History
     { unHist :: [a]
     } deriving (Eq, Show, Ord)
 
-newtype MarkovMap a = MarkovMap
-    { unMM :: Map (History a) (Distribution a)
-    } deriving (Eq, Show, Ord)
+newtype MarkovMap a = MarkovMap (Map (History a) (Distribution a))
+    deriving (Eq, Show, Ord)
 
 runChain ::
        forall a m. (Ord a, Show a, MonadRandom m)
