@@ -83,10 +83,10 @@ citations ::
        )
     => Bot m Privmsg ()
 citations =
-    (answeringP $ \src -> do
+    answeringP $ \src -> do
         path <- reader (citationRoot . paths . view config)
         Citations cs <- loadCites path
-        asum $ map (uncurry (cite src)) cs)
+        asum $ map (uncurry (cite src)) cs
 
 data QuoteCmd
     = Random

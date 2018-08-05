@@ -1,0 +1,99 @@
+An orientifold is a target spacetime for string sigma-models that combines
+aspects of 2-orbifolds with orientation reversal on the worldsheet, whence the
+name.  Where generally fields in physics/string theory are cocycles in
+(differential) cohomology theory and typically in complex oriented cohomology
+theory, fields on orientifolds are cocycles in genuinely 2-equivariant
+cohomology and typically in real-oriented cohomology theory. For instance the
+B-field which otherwise is a (twisted) coycles in (ordinary) ordinary cohomology
+over an orientifold is a cocycle in (twisted) HZR-theory, and the RR-fields
+which usually are cocycles in (twisted differential) K-theory over an
+orientifold are cocycles in KR-theory.  An explicit model for B-fields for the
+bosonic string on orientifolds and examples are analyzed in this context. That
+for the superstring the B-field is more generally a cocycle with coefficients in
+the Picard infinity-group of complex K-theory and a detailed discussion of the
+orientifold version of this. The quadratic pairing entering the 11d Chern-Simons
+theory that governs the RR-field here as a self-dual higher gauge field is given
+in.  
+
+A monad is a structure that is a lot like a monoid, but that lives in a
+bicategory rather than a monoidal category. Ordinary categories can be defined
+as monads in the bicategory of spans of sets. Multicategories can be defined in
+a similar way. A multicategory is like an ordinary category where each morphism
+has a list of objects as its domain, and a single object as its codomain; think
+vector spaces and multilinear maps. Monads are among the most pervasive
+structures in category theory and its applications: for example, they are
+central to the category-theoretic account of universal algebra, as well as
+underlying the theory of simplicial objects and thus, via the Dold-Kan
+correspondence, much of homological algebra.
+
+A bicategory is a particular algebraic notion of weak 2-category. The idea is
+that a bicategory is a category weakly enriched over Cat. the hom-objects of a
+bicategory are hom-categories, but the associativity and unity laws of enriched
+categories hold only up to coherent isomorphism.
+
+The morphisms can be composed along the objects, while the 2-morphisms can be
+composed in two different directions: along objects – called horizontal
+composition – and along morphisms – called vertical composition. The composition
+of morphisms is allowed to be associative only up to coherent associator
+2-morphisms.
+
+The notion of morphism in category theory is an abstraction of the notion of
+homomorphism.  In a general category, a morphism is an arrow between two
+objects.  The term arrow is sometimes used as a synonym for morphism, map, and
+also for directed edge (in a directed graph or quiver).
+
+More generally, a homomorphism is a function between structured sets that
+preserves whatever structure there is around. Even more generally,
+homomorphism is just a synonym for morphism in any category, the structured
+sets being generalised to arbitrary objects.
+
+The term magma is from Bourbaki and intends to suggest the fluidity of the
+concept; special cases include semigroups, quasigroups, groups, and so on. The
+term groupoid is also used, but here that word means something else.
+
+Generalizing the classical notion of monoid, one can define a monoid (or monoid
+object) in any monoidal category. Classical monoids are of course just monoids
+in Set with the cartesian product.
+
+A bifunctor, short for binary functor, or functor of two variables is simply a
+functor whose domain is the product of two categories. A functor is what goes
+between categories.  A functor from C to D is an image of C in D (but the naive
+image need not be a subcategory of D).  A functor between (small) categories is
+a morphism of the underlying quivers that respects the composition of edges.
+This last property is the decisive one of a functor. It is called the
+functoriality condition. It is a direct generalization of the notion of
+homomorphism of monoids, groups, algebras, etc to the case that there are more
+objects. The notion of functor is a horizontal categorification of that of
+homomorphism.
+
+Enriched functors are used in place of functors in enriched category theory:
+like functors they send objects to objects, but instead of mapping hom-sets to
+hom-sets they assign morphisms in the enriching category between hom-objects,
+while being compatible with composition and units in the obvious way.
+A contravariant functor is like a functor but it reverses the directions of the
+morphisms. Between groupoids, contravariant functors are essentially the same
+as functors.
+
+Categories, covariant functors, and natural transformations form a 2-category
+Cat. To include the contravariant functors as well, we can equip CatCat with a
+duality involution, or we can generalize to a 2-category with contravariance, or
+some more general structure that also includes extranatural transformations or
+dinatural transformations. There could also be higher-categorical versions, such
+as a 3-category with contravariance.
+
+The notion of a comonadic functor is the dual of that of a monadic functor.  A
+functor is monadic if it is equivalent to the forgetful functor from a category
+of algebras over a monad. In this case it is part of a monadic adjunction.
+
+A monadic functor is strictly monadic if and only if it is also an amnestic
+isofibration: clearly, a strictly monadic functor is an amnestic isofibration;
+and if a monadic functor U is amnestic, then the comparison functor K is also
+amnestic, and if U is a monadic isofibration, so is K; therefore in this case
+K must be an isomorphism of categories.
+
+The isofibrations are the fibrations in the canonical model structure on Cat.
+More generally, the fibrations in canonical model structures on various types of
+higher categories are usually some generalization of isofibrations. For example,
+the fibrations in the Lack model structure on 2-Cat have equivalence lifting
+and local isomorphism lifting, and the fibrations in the Joyal model structure
+for quasicategories have equivalence lifting at all levels.

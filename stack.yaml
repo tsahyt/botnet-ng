@@ -3,6 +3,7 @@ packages:
 - .
 extra-deps:
     - acid-state-0.14.3
+    - distribution-1.1.1.0
     - github: tsahyt/yak
       commit: e122d2c0dcb25387d44ab6195e9076e79a6f782c 
     - github: tsahyt/voco

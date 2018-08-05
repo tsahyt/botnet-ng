@@ -24,6 +24,7 @@ executable botnet-ng
                        Components.Github
                        Components.Interject
                        Components.Market
+                       Components.Markov
                        Components.Misc
                        Components.Permission
                        Components.Search
@@ -55,4 +56,5 @@ executable botnet-ng
                        parser-combinators >= 0.4,
                        wreq >= 0.5.2.1 && < 0.6,
                        time >= 1.8 && < 2,
-                       stm >= 2.4 && < 3
+                       stm >= 2.4 && < 3,
+                       distribution >= 1.1.1.0

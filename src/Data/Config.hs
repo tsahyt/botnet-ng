@@ -62,6 +62,7 @@ data Config = Config
 data Paths = Paths
     { dbRoot :: FilePath
     , citationRoot :: FilePath
+    , markovRoot :: FilePath
     } deriving (Generic)
 
 instance FromJSON Paths where

@@ -5,6 +5,7 @@ root:
 paths:
     db-root: "./state"
     citation-root: "./etc/quotes"
+    markov-root: "./etc/markov"
 connection:
     hostname: "irc.snoonet.org"
     port: 6697
