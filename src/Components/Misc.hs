@@ -3,24 +3,33 @@
 
 module Components.Misc
     ( source
+    , help
     , agencies
     ) where
 
 import Control.Monad.Random
 import Data.Coproduct
-import Data.Text (pack)
+import Data.Text (Text, pack)
+import Data.Monoid ((<>))
 import Network.Voco
 import Network.Yak.Client
 import Network.Yak.Types
 import Text.Printf
 
--- TODO: pull repo from cabal file
--- TODO: fix answering, doesn't respond in PM
+url :: Text
+url = "https://github.com/tsahyt/botnet-ng"
+
 source :: MonadChan m => Bot m (Privmsg :|: Notice) ()
 source =
     answering $ \src ->
         filterB (== ":source") $
-        message' src "https://github.com/tsahyt/botnet-ng"
+        message' src $ Message url
+
+help :: MonadChan m => Bot m (Privmsg :|: Notice) ()
+help =
+    answering $ \src ->
+        filterB (== ":help") $
+        message' src . Message $ url <> "/tree/master/doc/help.md"
 
 agencies :: (MonadRandom m, MonadChan m) => Bot m Privmsg ()
 agencies =

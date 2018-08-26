@@ -85,7 +85,12 @@ citations =
     answeringP $ \src -> do
         path <- reader (citationRoot . paths . view config)
         Citations cs <- loadCites path
-        asum $ map (uncurry (cite src)) cs
+        allCs src cs <|> (asum $ map (uncurry (cite src)) cs)
+  where
+    allCs src cs =
+        let rs = T.unwords $ map (T.cons ':' . fst) cs
+        in filterB (== ":cites") . message' src . Message $
+           "Available cites commands are " <> rs
 
 data QuoteCmd
     = Random

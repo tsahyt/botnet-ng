@@ -91,7 +91,7 @@ main = do
   where
     bot =
         (irc $
-         permissions <|> search <|> citations <|> markov <|> github <|> markets <|>
-         agencies <|> interject <|> userData [] <|> admin) <>
+         permissions <|> search <|> citations <|> markov <|> github <|> 
+         markets <|> agencies <|> interject <|> userData [] <|> admin) <>
         (irc wolfram) <>
-        (irc source)
+        (irc $ source <|> help)

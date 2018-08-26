@@ -36,7 +36,11 @@ markov =
     answeringP $ \src -> do
         path <- reader (markovRoot . paths . view config)
         chains <- loadChains path
-        asum $ map (uncurry (chainBot src)) chains
+        allCs src chains <|> (asum $ map (uncurry (chainBot src)) chains)
+    where allCs src chains = 
+            let rs = T.unwords $ map (T.cons ':' . fst) chains
+            in filterB (== ":chains") . message' src . Message $
+               "Available Markov chain commands are " <> rs
 
 chainBot ::
        (MonadChan m, MonadRandom m)
