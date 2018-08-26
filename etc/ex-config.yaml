@@ -10,10 +10,11 @@ connection:
     hostname: "irc.snoonet.org"
     port: 6697
     ssl: true
+    pwd: null
+    nick: "botnet"
+    user: "botnet"
 channels:
     - "#voco-example"
-nick:
-    "botnet-ng"
 keys:
     alpha-vantage: "DEMO"
     wolfram-alpha: null

@@ -14,7 +14,7 @@ import Control.Monad.Acid
 import Control.Monad.Reader
 import Data.Config
 import Data.Monoid ((<>))
-import Network.Voco hiding (nick)
+import Network.Voco hiding (nick, user)
 import System.Exit
 import System.FilePath
 
@@ -45,10 +45,10 @@ configServer ConnectionConfig {..} =
                     else Nothing
           , connectionUseSocks = Nothing
           }
-    , serverPass = Nothing
-    , botUser = "bot"
+    , serverPass = pwd
+    , botUser = user
     , botRealname = "bot"
-    , botNickname = "botnet-ng"
+    , botNickname = nick
     }
 
 type States = '[ UserPermissions]
@@ -85,7 +85,7 @@ main = do
         Right c -> do
             states <- initAcid c
             env <- mkEnvironment c
-            let server = configServer (connection $ c)
+            let server = configServer (connection c)
                 nt = NT $ \x -> runReaderT (runAcidT x states) env
             botloop server nt (standard (channels c) <> bot)
   where

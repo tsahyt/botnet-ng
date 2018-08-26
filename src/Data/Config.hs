@@ -54,7 +54,6 @@ data Config = Config
     { root :: Host
     , connection :: ConnectionConfig
     , channels :: NonEmpty Channel
-    , nick :: Nickname
     , paths :: Paths
     , keys :: APIKeys
     } deriving (Generic, FromJSON)
@@ -73,6 +72,9 @@ data ConnectionConfig = ConnectionConfig
     { hostname :: HostName
     , port :: PortNumber
     , ssl :: Bool
+    , pwd :: Maybe Text
+    , nick :: Nickname
+    , user :: Text
     } deriving (Generic, FromJSON)
 
 data APIKeys = APIKeys
