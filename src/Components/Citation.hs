@@ -16,7 +16,6 @@ import Control.Monad.Random
 import Control.Monad.Reader
 import Data.Array
 import Data.Config (HasConfig(..), citationRoot, paths)
-import Data.Helpful
 import Data.List (sortBy)
 import Data.Maybe (fromMaybe)
 import Data.Ord (Down(..), comparing)

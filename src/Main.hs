@@ -13,7 +13,6 @@ import Control.Lens
 import Control.Monad.Acid
 import Control.Monad.Reader
 import Data.Config
-import Data.Helpful
 import Data.Monoid ((<>))
 import Network.Voco hiding (nick)
 import System.Exit

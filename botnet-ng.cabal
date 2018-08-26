@@ -31,7 +31,6 @@ executable botnet-ng
                        Components.UserData
                        Components.Wolfram
                        Data.Config
-                       Data.Helpful
                        Orphans
   build-depends:       base >= 4.7 && < 5, 
                        yak, 
