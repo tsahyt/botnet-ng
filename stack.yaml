@@ -1,4 +1,4 @@
-resolver: lts-11.17
+resolver: lts-11.22
 packages:
 - .
 extra-deps:
@@ -7,12 +7,7 @@ extra-deps:
     - github: tsahyt/yak
       commit: e122d2c0dcb25387d44ab6195e9076e79a6f782c 
     - github: tsahyt/voco
-      commit: 1bd635dfd958ad593bee8d9811ff993dcdd859a8
-
-# docker build
-image:
-  containers:
-    - base: "fpco/haskell-scratch"
-      name: "tsahyt/botnet2"
-      entrypoints:
-        - botnet2
+      commit: 63ed4d451730616b14aed285ccb95d0d557d153d
+docker:
+    enable: false
+    image: "tsahyt/centos-stack:ghc-8.2.2"

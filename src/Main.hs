@@ -30,6 +30,7 @@ import Components.Markov
 import Components.Misc
 import Components.Permission
 import Components.Search
+import Components.UserData
 import Components.Wolfram
 
 configServer :: ConnectionConfig -> IRCServer
@@ -92,8 +93,6 @@ main = do
     bot =
         (irc $
          permissions <|> search <|> citations <|> markov <|> github <|> markets <|>
-         agencies <|>
-         interject <|>
-         admin) <>
+         agencies <|> interject <|> userData [] <|> admin) <>
         (irc wolfram) <>
         (irc source)

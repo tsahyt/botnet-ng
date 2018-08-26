@@ -28,6 +28,7 @@ executable botnet-ng
                        Components.Misc
                        Components.Permission
                        Components.Search
+                       Components.UserData
                        Components.Wolfram
                        Data.Config
                        Data.Helpful
