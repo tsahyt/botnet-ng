@@ -58,6 +58,9 @@ agencies =
         , ( ":gnu"
           , [ "Your use of proprietary software has been reported to the\
              \ FSF. (Assigned GNULAG #%03d)" ] )
+        , ( ":gnome"
+          , [ "Your disgust over KDE has been noted. (Cult Follower #%03d)"
+            , "You are now subscribed to GNOME Facts! (Cult Follower #%03d)" ])
         ]
   where
     go src fmt = do
