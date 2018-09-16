@@ -29,6 +29,7 @@ executable botnet-ng
                        Components.Permission
                        Components.Search
                        Components.UserData
+                       Components.UserHunt
                        Components.Wolfram
                        Data.Config
                        Orphans

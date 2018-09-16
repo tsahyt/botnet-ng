@@ -69,7 +69,7 @@ shortAnswer ::
     => Nickname
     -> Channel :|: Nickname -> Bot m Text ()
 shortAnswer nn src =
-    parsed (A.string ":wa" *> A.skipSpace *> A.takeText) . 
+    parsed (A.string ":wa " *> A.skipSpace *> A.takeText) . 
     withKey wolframAlpha $ \k ->
         asyncV $ do
             q <- query
@@ -89,7 +89,7 @@ conversation ::
     -> Channel :|: Nickname -> Bot m Text ()
 conversation nn src = do
     env <- ask
-    parsed (A.string ":hal" *> A.skipSpace *> A.takeText) .
+    parsed (A.string ":hal " *> A.skipSpace *> A.takeText) .
         asyncV' (NT $ flip runReaderT env) $ do
         question <- query
         previous <-
