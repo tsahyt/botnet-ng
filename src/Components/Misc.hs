@@ -74,21 +74,22 @@ agencies =
 combo :: (MonadIO m, Monad m) => [Text] -> Req () -> Bot m Privmsg ()
 combo [] _ = pure ()
 combo (start:finisher) c =
-    answeringP $ \_ ->
+    answeringP $ \src ->
         filterB (== Message start) . asyncV . request $ do
-            x <- runMaybeT $ go finisher
+            x <- runMaybeT $ matchReq src finisher
             case x of
                 Nothing -> pure ()
                 Just _ -> c
-  where
-    go :: [Text] -> MaybeT Req ()
-    go [] = pure ()
-    go (x:xs) = do
-        y <- lift recv
-        guard (y ^. privmsgMessage . _Wrapped == x)
-        go xs
+
+matchReq :: Either Channel Nickname -> [Text] -> MaybeT Req ()
+matchReq _ [] = pure ()
+matchReq src (x:xs) = do
+    y <- lift recv
+    if src `elem` y ^. privmsgTargets
+        then guard (y ^. privmsgMessage . _Wrapped == x) *> matchReq src xs
+        else matchReq src (x:xs)
 
 jlaw :: MonadIO m => Bot m Privmsg ()
 jlaw =
     combo [">.>", "<.<", "v.v", "^.^"] $
-    kick "#linuxmasterrace" "Jennifer-Lawrence" (Just "C-C-C-COMBO!")
+    kick "#voco-example" "sham1" (Just "C-C-C-COMBO!")
