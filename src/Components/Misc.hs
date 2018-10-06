@@ -84,6 +84,7 @@ combo (start:finisher) c =
     go (x:xs) = do
         y <- lift recv
         guard (y ^. privmsgMessage . _Wrapped == x)
+        go xs
 
 jlaw :: MonadIO m => Bot m Privmsg ()
 jlaw =
