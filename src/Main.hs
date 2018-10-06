@@ -51,15 +51,17 @@ configServer ConnectionConfig {..} =
     , botNickname = nick
     }
 
-type States = '[ UserPermissions]
+type States = '[ UserPermissions, Combos]
 
 initAcid :: Config -> IO (AcidStates States)
 initAcid Config {..} = do
     uperms <-
         Acid.openLocalStateFrom (dbRoot paths </> "user-permissions") mempty
+    combs <-
+        Acid.openLocalStateFrom (dbRoot paths </> "combos") mempty
     -- grant root all permissions on start
     mapM_ (\p -> Acid.update uperms $ GrantU root p) allPerms
-    pure $ uperms :+ NullState
+    pure $ uperms :+ combs :+ NullState
 
 data Environment = Environment
     { _envConfig :: Config
@@ -92,6 +94,6 @@ main = do
     bot =
         (irc $
          permissions <|> search <|> citations <|> markov <|> github <|> 
-         markets <|> agencies <|> interject <|> userData [] <|> jlaw <|> admin) <>
+         markets <|> agencies <|> interject <|> userData [] <|> combos <|> admin) <>
         (irc wolfram) <>
         (irc $ source <|> help)

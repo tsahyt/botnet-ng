@@ -47,6 +47,7 @@ data Perm
     = SetPermissions -- ^ "set-perms"
     | ManageChans -- ^ "manage-chans"
     | ChangeNick -- ^ "change-nick"
+    | ManageCombos -- ^ "manage-combos"
     | Speak -- ^ "speak"
     deriving (Eq, Ord, Show, Read, Enum)
 
@@ -58,6 +59,7 @@ permDict =
     [ (SetPermissions, "set-perms")
     , (ManageChans, "manage-chans")
     , (ChangeNick, "change-nick")
+    , (ManageCombos, "manage-combos")
     , (Speak, "speak")
     ]
 
