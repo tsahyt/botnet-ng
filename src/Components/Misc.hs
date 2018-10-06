@@ -5,9 +5,12 @@ module Components.Misc
     ( source
     , help
     , agencies
+    , jlaw
     ) where
 
+import Control.Lens
 import Control.Monad.Random
+import Control.Monad.Trans.Maybe
 import Data.Coproduct
 import Data.Text (Text, pack)
 import Data.Monoid ((<>))
@@ -67,3 +70,22 @@ agencies =
         f <- uniform fmt
         c <- getRandomR (1337 :: Int, 99999 :: Int)
         message' src . Message . pack . printf f $ c
+
+combo :: (MonadIO m, Monad m) => [Text] -> Req () -> Bot m Privmsg ()
+combo (start:finisher) c =
+    answeringP $ \_ ->
+        filterB (== Message start) . asyncV . request $ do
+            x <- runMaybeT $ go finisher
+            case x of
+                Nothing -> pure ()
+                Just _ -> c
+  where
+    go :: [Text] -> MaybeT Req ()
+    go (x:xs) = do
+        y <- lift recv
+        guard (y ^. privmsgMessage . _Wrapped == x)
+
+jlaw :: MonadIO m => Bot m Privmsg ()
+jlaw =
+    combo [">.>", "<.<", "v.v", "^.^"] $
+    kick "#linuxmasterrace" "Jennifer-Lawrence" (Just "C-C-C-COMBO!")

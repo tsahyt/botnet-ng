@@ -92,6 +92,6 @@ main = do
     bot =
         (irc $
          permissions <|> search <|> citations <|> markov <|> github <|> 
-         markets <|> agencies <|> interject <|> userData [] <|> admin) <>
+         markets <|> agencies <|> interject <|> userData [] <|> jlaw <|> admin) <>
         (irc wolfram) <>
         (irc $ source <|> help)
