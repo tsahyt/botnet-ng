@@ -72,6 +72,7 @@ agencies =
         message' src . Message . pack . printf f $ c
 
 combo :: (MonadIO m, Monad m) => [Text] -> Req () -> Bot m Privmsg ()
+combo [] _ = pure ()
 combo (start:finisher) c =
     answeringP $ \_ ->
         filterB (== Message start) . asyncV . request $ do
@@ -81,6 +82,7 @@ combo (start:finisher) c =
                 Just _ -> c
   where
     go :: [Text] -> MaybeT Req ()
+    go [] = pure ()
     go (x:xs) = do
         y <- lift recv
         guard (y ^. privmsgMessage . _Wrapped == x)
