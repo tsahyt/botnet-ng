@@ -25,6 +25,7 @@ executable botnet-ng
                        Components.Interject
                        Components.Market
                        Components.Markov
+                       Components.Manual
                        Components.Misc
                        Components.Permission
                        Components.Search
@@ -57,4 +58,5 @@ executable botnet-ng
                        wreq >= 0.5.2.1 && < 0.6,
                        time >= 1.8 && < 2,
                        stm >= 2.4 && < 3,
-                       distribution >= 1.1.1.0
+                       distribution >= 1.1.1.0,
+                       file-embed >= 0.0.10
