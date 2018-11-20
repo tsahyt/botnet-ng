@@ -26,6 +26,7 @@ import Components.Github
 import Components.Interject
 import Components.Market
 import Components.Markov
+import Components.Manual
 import Components.Misc
 import Components.Permission
 import Components.Search
@@ -93,7 +94,7 @@ main = do
   where
     bot =
         (irc $
-         permissions <|> search <|> citations <|> markov <|> github <|> 
-         markets <|> agencies <|> interject <|> userData [] <|> combos <|> admin) <>
+         permissions <|> search <|> citations <|> markov <|> github <|> markets <|>
+         agencies <|> interject <|> userData [] <|> combos <|> man <|> admin) <>
         (irc wolfram) <>
         (irc $ source <|> help)
