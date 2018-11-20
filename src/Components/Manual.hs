@@ -42,20 +42,22 @@ mancmd =
 baseUrl :: String
 baseUrl = "https://linux.die.net/man/"
 
-pages :: Map Text (NonEmpty (Int, Text))
-pages =
+mkPages :: Text -> Map Text (NonEmpty (Int, Text))
+mkPages =
     build .
     fromMaybe [] .
-    either (error) Just . A.parseOnly (A.many1 entry <* A.endOfLine) $
-    $(embedStringFile "etc/mandb")
+    either (error) Just . A.parseOnly (A.many1 $ entry <* A.endOfLine)
   where
     entry =
         (,,) <$> (A.decimal <* A.char ';') <*>
         (A.takeTill (== ';') <* A.char ';') <*>
-        A.takeText
+        A.takeTill A.isEndOfLine
     build = foldl' (\m (s, t, d) -> M.alter (go s d) t m) M.empty
     go s d Nothing = Just (pure (s, d))
     go s d (Just xs) = Just ((s, d) <| xs)
+
+pages :: Map Text (NonEmpty (Int, Text))
+pages = mkPages $(embedStringFile "etc/mandb")
         
 findSection :: Text -> Maybe Int
 findSection t = fst . head <$> M.lookup t pages
