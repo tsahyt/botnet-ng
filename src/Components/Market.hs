@@ -118,54 +118,32 @@ fmtCrypto CryptoQuote {..} =
     T.pack $
     printf
         ("%s: \002%s\x0F/\002%s\x0F @\003" <>
-         "2 %.2f\003 %s (%.2f USD)")
+         "2 %s\003 %s")
         cryptoName
         cryptoSymbol
         cryptoMarket
         priceMarket
         cryptoMarket
-        priceUSD
 
 data CryptoQuote = CryptoQuote
     { cryptoSymbol :: Text
     , cryptoName :: Text
     , cryptoMarket :: Text
-    , priceMarket :: Double
-    , priceUSD :: Double
+    , priceMarket :: Text
     , cryptoDate :: Text
     } deriving (Show, Eq)
 
 avCrypto :: MonadIO m => Text -> Text -> Text -> m (Maybe CryptoQuote)
 avCrypto k sym market = do
     let opts =
-            defaults & param "function" .~ ["DIGITAL_CURRENCY_INTRADAY"] &
-            param "symbol" .~
+            defaults & param "function" .~ ["CURRENCY_EXCHANGE_RATE"] &
+            param "from_currency" .~
             [sym] &
-            param "market" .~
+            param "to_currency" .~
             [market] &
             param "apikey" .~
             [k]
     r <- liftIO $ getWith opts "https://www.alphavantage.co/query"
-    let quote = do
-            let today =
-                    r ^. responseBody . key "Meta Data" .
-                    key "7. Last Refreshed" .
-                    _String
-                name =
-                    r ^. responseBody . key "Meta Data" .
-                    key "3. Digital Currency Name" .
-                    _String
-            dat <-
-                preview
-                    (responseBody .
-                     key "Time Series (Digital Currency Intraday)" .
-                     key today)
-                    r
-            pMarket <-
-                readMaybe . T.unpack $ dat ^.
-                key ("1a. price (" <> market <> ")") .
-                _String
-            pUSD <-
-                readMaybe . T.unpack $ dat ^. key "1b. price (USD)" . _String
-            pure $ CryptoQuote sym name market pMarket pUSD today
+    let body = responseBody . key "Realtime Currency Exchange Rate"
+        quote = CryptoQuote <$> pure sym <*> (r ^? body . key "2. From_Currency Name" . _String) <*> pure market <*> (r ^? body . key "5. Exchange Rate" . _String) <*> (r ^? body . key "6. Last Refreshed" . _JSON)
     pure quote
