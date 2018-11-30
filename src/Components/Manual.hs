@@ -36,7 +36,7 @@ data Man =
 mancmd :: A.Parser Man
 mancmd = A.string ":man" *> A.skipSpace *> A.choice
     [ (\s t -> Man t s) <$> (Just <$> A.decimal) <*> (A.skipSpace *> mantitle)
-    , Man <$> mantitle <*> (A.char '(' *> (Just <$> A.decimal) <* A.char '(')
+    , Man <$> mantitle <*> (A.char '(' *> (Just <$> A.decimal) <* A.char ')')
     , Man <$> mantitle <*> optional (A.skipSpace *> A.decimal) ]
   where
     mantitle = A.takeTill isSpace
