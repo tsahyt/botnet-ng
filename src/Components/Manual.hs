@@ -13,7 +13,6 @@ import Data.Foldable (foldl')
 import Data.Char (isSpace)
 import Data.List.NonEmpty (NonEmpty, (<|), head, toList)
 import Data.Map (Map)
-import Data.Tuple (swap)
 import Data.Monoid
 import Data.Maybe (fromMaybe)
 import Data.Text (Text, pack, unpack)
