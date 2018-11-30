@@ -13,6 +13,7 @@ import Data.Foldable (foldl')
 import Data.Char (isSpace)
 import Data.List.NonEmpty (NonEmpty, (<|), head, toList)
 import Data.Map (Map)
+import Data.Tuple (swap)
 import Data.Monoid
 import Data.Maybe (fromMaybe)
 import Data.Text (Text, pack, unpack)
@@ -31,11 +32,13 @@ import Prelude hiding (head)
 data Man =
     Man Text
         (Maybe Int)
+    deriving (Show)
 
 mancmd :: A.Parser Man
-mancmd =
-    Man <$> (A.string ":man" *> A.skipSpace *> mantitle) <*>
-    optional (A.skipSpace *> A.decimal)
+mancmd = A.string ":man" *> A.skipSpace *> A.choice
+    [ (\s t -> Man t s) <$> (Just <$> A.decimal) <*> (A.skipSpace *> mantitle)
+    , Man <$> mantitle <*> (A.char '(' *> (Just <$> A.decimal) <* A.char '(')
+    , Man <$> mantitle <*> optional (A.skipSpace *> A.decimal) ]
   where
     mantitle = A.takeTill isSpace
 
