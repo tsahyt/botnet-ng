@@ -39,7 +39,7 @@ mancmd = A.string ":man" *> A.skipSpace *> A.choice
     , Man <$> mantitle <*> (A.char '(' *> (Just <$> A.decimal) <* A.char ')')
     , Man <$> mantitle <*> optional (A.skipSpace *> A.decimal) ]
   where
-    mantitle = A.takeTill isSpace
+    mantitle = A.takeTill (\x -> isSpace x || x == '(')
 
 baseUrl :: String
 baseUrl = "https://linux.die.net/man/"
