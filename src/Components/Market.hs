@@ -145,5 +145,10 @@ avCrypto k sym market = do
             [k]
     r <- liftIO $ getWith opts "https://www.alphavantage.co/query"
     let body = responseBody . key "Realtime Currency Exchange Rate"
-        quote = CryptoQuote <$> pure sym <*> (r ^? body . key "2. From_Currency Name" . _String) <*> pure market <*> (r ^? body . key "5. Exchange Rate" . _String) <*> (r ^? body . key "6. Last Refreshed" . _JSON)
+        quote =
+            CryptoQuote <$> pure sym <*>
+            (r ^? body . key "2. From_Currency Name" . _String) <*>
+            pure market <*>
+            (r ^? body . key "5. Exchange Rate" . _String) <*>
+            (r ^? body . key "6. Last Refreshed" . _JSON)
     pure quote
