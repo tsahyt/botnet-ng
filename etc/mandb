@@ -11749,7 +11749,7 @@
 3;bytes;Perl pragma to force byte semantics rather than char semantics
 3;bzero;zero-valued bytes
 3;c;Command Interface Module
-<dt>1;c++intro;Introduction to GNU libstdc++ man pages
+1;c++intro;Introduction to GNU libstdc++ man pages
 3;cabs;absolute value of complex number
 3;cabsf;absolute value of complex number
 3;cabsl;absolute value of complex number

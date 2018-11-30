@@ -42,16 +42,17 @@ mancmd =
 baseUrl :: String
 baseUrl = "https://linux.die.net/man/"
 
+manEntry :: A.Parser (Int, Text, Text)
+manEntry =
+    (,,) <$> (A.decimal <* A.char ';') <*> (A.takeTill (== ';') <* A.char ';') <*>
+    A.takeTill A.isEndOfLine
+    
 mkPages :: Text -> Map Text (NonEmpty (Int, Text))
 mkPages =
     build .
     fromMaybe [] .
-    either (error) Just . A.parseOnly (A.many1 $ entry <* A.endOfLine)
+    either (error) Just . A.parseOnly (A.many1 $ manEntry <* A.endOfLine)
   where
-    entry =
-        (,,) <$> (A.decimal <* A.char ';') <*>
-        (A.takeTill (== ';') <* A.char ';') <*>
-        A.takeTill A.isEndOfLine
     build = foldl' (\m (s, t, d) -> M.alter (go s d) t m) M.empty
     go s d Nothing = Just (pure (s, d))
     go s d (Just xs) = Just ((s, d) <| xs)
