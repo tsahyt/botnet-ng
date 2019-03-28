@@ -117,7 +117,7 @@ searxProcess :: Int -> Response ByteString -> SearxResults
 searxProcess respCount resp = maybe SearxInvalid Results res
   where
     res :: Maybe [SearxResult]
-    res = V.toList results
+    res = V.toList <$> results
 
     results = if V.length resultVec == 0 then Nothing
       else Just $ V.map result $ V.take respCount resultVec
