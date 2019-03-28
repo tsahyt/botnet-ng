@@ -20,9 +20,10 @@ import Network.Yak.Types (Message(..))
 
 import qualified Data.Attoparsec.Text as A
 import qualified Data.Text as T
+import qualified Data.Vector as V
 
 search :: (MonadIO m, MonadChan m) => Bot m Privmsg ()
-search = ddg 200
+search = ddg 200 <|> searx 1
 
 ddg :: (MonadIO m, MonadChan m) => Int -> Bot m Privmsg ()
 ddg limit =
@@ -79,3 +80,48 @@ ddgProcess limit r
     url = r ^. responseBody . key "AbstractURL" . _String
     redir = r ^. responseBody . key "Redirect" . _String
     img = r ^. responseBody . key "Image" . _String
+
+searx :: (MonadIO m, MonadChan m) => Int -> Bot m Privmsg ()
+searx respCount =
+  answeringP $ \src ->
+      on (view _Wrapped) .
+      parsed (A.string ":searx" *> A.skipSpace *> A.takeText) . asyncV $ do
+          r <- searxGo =<< query
+          case searxProcess respCount <$> r of
+            Just (Results results) ->
+              mapM_ (sendResult src) results
+            _ -> message' src "I cannot search for that!"
+  where
+    sendResult src result = let title = searxTitle result
+                                url = searxUrl result
+                            in message' src (Message $
+                                              "Title: " <> title <>
+                                             ", URL: " <> url)
+
+data SearxResults
+  = Results [SearxResult]
+  | SearxInvalid
+
+data SearxResult
+  = SearxResult { searxTitle :: Text, searxUrl :: Text }
+
+searxGo :: MonadIO m => Text -> m (Maybe (Response ByteString))
+searxGo q = do
+  let opts =
+        defaults & param "format" .~ ["json"] & param "q" .~ [q]
+
+  r <- liftIO . try @SomeException $ getWith opts "https://searx.ch/search"
+  pure . either (const Nothing) Just $ r
+
+searxProcess :: Int -> Response ByteString -> SearxResults
+searxProcess respCount resp = maybe SearxInvalid Results res
+  where
+    res :: Maybe [SearxResult]
+    res = fmap (V.foldr (:) []) results
+
+    results = if V.length resultVec == 0 then Nothing
+      else Just $ V.map result $ V.take respCount resultVec
+    resultVec = resp ^. responseBody . key "results" . _Array
+    result obj = let title' = obj ^. key "title" . _String
+                     url' = obj ^. key "url" . _String
+                 in SearxResult title' url'
