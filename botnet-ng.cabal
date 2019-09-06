@@ -21,6 +21,7 @@ executable botnet-ng
   other-modules:       Control.Monad.Acid
                        Components.Admin
                        Components.Citation
+                       Components.Crates
                        Components.Github
                        Components.Interject
                        Components.Market
